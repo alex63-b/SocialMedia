@@ -3,6 +3,7 @@ package Repository.ConcreteRepositories;
 import Domain.Objects.Friendship;
 import Domain.Objects.Pair;
 import Domain.Objects.User;
+import Domain.Validation.ValidationException;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.FileRepository;
 import Repository.AbstractRepositories.ObservableUserRepository;
@@ -15,14 +16,31 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 
+/**
+ * This class stores friendships in a file and observes changes to the user repository.
+ */
 public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friendship> implements FileRepoObserver {
     ObservableUserRepository user_repo;
+
+    /**
+     * This function creates a friendship repository backed by a file and registers it with the user repository.
+     * @param user_repo the observable repository used to find and track users;
+     * @param validator the validator used for friendships;
+     * @param fileName the path to the friendship data file;
+     * @throws RepositoryException if the file cannot be created or opened;
+     */
     public FriendshipFileRepository(ObservableUserRepository user_repo, Validator<Friendship> validator, String fileName) {
         this.user_repo = user_repo;
         super(validator, fileName);
         user_repo.addObserver(this);
     }
 
+    /**
+     * This function converts a file line into a friendship.
+     * @param line the line to convert;
+     * @return the friendship represented by the line;
+     * @throws RepositoryException if the line's fields, user IDs, or date cannot be parsed;
+     */
     @Override
     protected Friendship lineToEntity(String line) throws RepositoryException {
         String[] splitLine = line.split(",");
@@ -46,6 +64,11 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
         }
     }
 
+    /**
+     * This function converts a friendship into a comma-separated file line.
+     * @param entity the friendship to convert;
+     * @return the line representing the users' IDs and friendship date;
+     */
     @Override
     protected String entityToLine(Friendship entity) {
         return entity.getFriend1().getId() + "," + entity.getFriend2().getId() + "," + entity.getDate();
@@ -83,6 +106,12 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
         new_element.getFriend1().addFriend(new_element.getFriend2());
         new_element.getFriend2().addFriend(new_element.getFriend1());
     }
+
+    /**
+     * This function removes a friendship and removes the corresponding friend links from both users.
+     * @param id the pair of user IDs identifying the friendship;
+     * @throws RepositoryException if the friendship does not exist or the file cannot be written;
+     */
     @Override
     public void deleteElement(Pair<Long> id) throws RepositoryException {
         Friendship friendship = findElement(id);
@@ -92,18 +121,40 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
 
         super.deleteElement(id);
     }
+
+    /**
+     * This function validates the relationship, adds a friendship, and links the users as friends.
+     * @param new_element the friendship to add;
+     * @throws RepositoryException if the users are not present, the relationship already exists,
+     *                             or the file cannot be written;
+     * @throws ValidationException if the friendship does not satisfy its validation rules;
+     */
     @Override
     public void addElement(Friendship new_element) throws RepositoryException, RepositoryException {
         validateRelations(new_element);
         super.addElement(new_element);
         addFriendsAfterAdd(new_element);
     }
+
+    /**
+     * This function adds a friendship while loading the file and links its users as friends.
+     * @param new_element the friendship to add;
+     * @throws RepositoryException if the users are not present or the relationship already exists;
+     * @throws ValidationException if the friendship does not satisfy its validation rules;
+     */
     @Override
     protected void noStoreAddElement(Friendship new_element) throws RepositoryException, RepositoryException {
         validateRelations(new_element);
         super.noStoreAddElement(new_element);
         addFriendsAfterAdd(new_element);
     }
+
+    /**
+     * This function replaces a friendship and updates the users' friend links.
+     * @param new_element the friendship containing the replacement data;
+     * @throws RepositoryException if the friendship does not exist or the file cannot be written;
+     * @throws ValidationException if the friendship does not satisfy its validation rules;
+     */
     @Override
     public void modifyElement(Friendship new_element){
         User oldFriend1 = findElement(new_element.getId()).getFriend1();
@@ -119,6 +170,11 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
         }
     }
 
+    /**
+     * This function synchronizes stored friendships with user repository changes.
+     * Friendships for removed users are deleted and friendships are updated with current user data.
+     * @throws RepositoryException if a repository operation fails while synchronizing;
+     */
     @Override
     public void update() {
         List<Pair<Long>> deleteList = new ArrayList<>();

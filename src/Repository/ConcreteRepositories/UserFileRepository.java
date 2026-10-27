@@ -11,13 +11,28 @@ import Repository.Observer.FileRepoObserver;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class stores users in a file and notifies observers when users change.
+ */
 public class UserFileRepository extends FileRepository<Long, User> implements ObservableUserRepository {
     private final List<FileRepoObserver> observers = new ArrayList<>();
 
+    /**
+     * This function creates a user repository backed by the specified file.
+     * @param validator the validator used for users;
+     * @param fileName the path to the user data file;
+     * @throws RepositoryException if the file cannot be created or opened;
+     */
     public UserFileRepository(Validator<User> validator, String fileName) {
         super(validator, fileName);
     }
 
+    /**
+     * This function converts a file line into a user.
+     * @param line the line to convert;
+     * @return the user represented by the line;
+     * @throws ValidationException if the line has an invalid number of fields or ID;
+     */
     @Override
     protected User lineToEntity(String line) throws ValidationException {
         String[] split = line.split(",");
@@ -33,21 +48,37 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
         }
     }
 
+    /**
+     * This function converts a user into a comma-separated file line.
+     * @param entity the user to convert;
+     * @return the line representing the user's ID, name, and first name;
+     */
     @Override
     protected String entityToLine(User entity) {
         return entity.getId() + "," + entity.getName() + "," + entity.getFirstName() ;
     }
 
+    /**
+     * This function registers an observer to receive user repository updates.
+     * @param new_observer the observer to register;
+     */
     @Override
     public void addObserver(FileRepoObserver new_observer) {
         observers.add(new_observer);
     }
 
+    /**
+     * This function removes an observer from user repository notifications.
+     * @param deleted_observer the observer to remove;
+     */
     @Override
     public void removeObserver(FileRepoObserver deleted_observer) {
         observers.remove(deleted_observer);
     }
 
+    /**
+     * This function notifies all registered observers about a repository update.
+     */
     @Override
     public void notifyObservers() {
         for (FileRepoObserver observer : List.copyOf(observers)) {
@@ -55,18 +86,35 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
         }
     }
 
+    /**
+     * This function validates and adds a user, saves it, and notifies observers.
+     * @param element the user to add;
+     * @throws RepositoryException if a user with the same ID exists or the file cannot be written;
+     * @throws ValidationException if the user does not satisfy its validation rules;
+     */
     @Override
     public void addElement(User element) throws RepositoryException {
         super.addElement(element);
         notifyObservers();
     }
 
+    /**
+     * This function removes a user, saves the change, and notifies observers.
+     * @param id the ID of the user to remove;
+     * @throws RepositoryException if the user does not exist or the file cannot be written;
+     */
     @Override
     public void deleteElement(Long id) throws RepositoryException {
         super.deleteElement(id);
         notifyObservers();
     }
 
+    /**
+     * This function replaces a user, saves the change, and notifies observers.
+     * @param element the user containing the replacement data;
+     * @throws RepositoryException if the user does not exist or the file cannot be written;
+     * @throws ValidationException if the user does not satisfy its validation rules;
+     */
     @Override
     public void modifyElement(User element) throws RepositoryException {
         super.modifyElement(element);

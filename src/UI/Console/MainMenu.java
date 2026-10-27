@@ -11,10 +11,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+/**
+ * This class implements the application's interactive console menu.
+ */
 public class MainMenu implements ConsoleMenu{
     private final ConsoleUserService userService;
     private final ConsoleFriendshipService friendshipService;
     private final static BufferedReader read = new BufferedReader(new InputStreamReader(System.in));
+
+    /**
+     * This function creates a menu using the specified user and friendship services.
+     * @param userService the service used for user operations;
+     * @param friendshipService the service used for friendship operations;
+     */
     public MainMenu(ConsoleUserService userService, ConsoleFriendshipService friendshipService){
         this.friendshipService = friendshipService;
         this.userService = userService;
@@ -35,6 +44,9 @@ public class MainMenu implements ConsoleMenu{
         }
     }
 
+    /**
+     * This function prints the available menu options.
+     */
     @Override
     public void printMenu() {
         System.out.println("Choose an option from the menu:");
@@ -121,6 +133,10 @@ public class MainMenu implements ConsoleMenu{
             }
         }
     }
+
+    /**
+     * This function runs the menu until the user chooses to exit.
+     */
     @Override
     public void mainLoop() {
         boolean appStopped = false;

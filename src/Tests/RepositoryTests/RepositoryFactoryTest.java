@@ -74,7 +74,7 @@ class RepositoryFactoryTest {
 
         Validator<User> userValidator = new UserValidator();
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
-        ObservableUserRepository userRepository = factory.createUserRepository(userValidator);
+        Repository<Long,User> userRepository = factory.createUserRepository(userValidator);
         Repository<Pair<Long>,Friendship> friendshipFileRepo = factory.createFriendshipRepository(userRepository,friendshipValidator);
 
         assertEquals(2,friendshipFileRepo.size());
@@ -83,6 +83,7 @@ class RepositoryFactoryTest {
         assertEquals("Luke Scott",friendshipFileRepo.findElement(new Pair<>(3L,2L)).getFriend1().getName());
 
         userRepository.deleteElement(1L);
+
         assertEquals(1,friendshipFileRepo.size());
     }
 }
