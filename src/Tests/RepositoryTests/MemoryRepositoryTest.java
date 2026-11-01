@@ -7,6 +7,9 @@ import Repository.AbstractRepositories.MemoryRepository;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MemoryRepositoryTest {
@@ -19,7 +22,7 @@ class MemoryRepositoryTest {
         for(User u : new_users){
             new_repo.addElement(u);
         }
-        Iterable<User> iter = new_repo.findAll();
+        Iterable<User> iter = new_repo.findAll((_) -> true);
         for(User u : new_users){
             boolean found = false;
             for(User u2 : iter){
@@ -32,6 +35,9 @@ class MemoryRepositoryTest {
                 fail();
             }
         }
+        List<User> list = new_repo.findAll((u) -> u.getName().startsWith("L"));
+        assertEquals(1,list.size());
+        assertEquals("Luke Doe",list.getFirst().getName());
     }
 
     @Test
@@ -49,7 +55,7 @@ class MemoryRepositoryTest {
         User wrong_user = new User(3L,"John Doe","");
         Repository<Long, User> new_repo = new MemoryRepository<Long, User>(new UserValidator());
         new_repo.addElement(new_user);
-        var iterator = new_repo.findAll().iterator();
+        var iterator = new_repo.findAll((_) -> true).iterator();
         assertEquals(iterator.next(),new_user);
         assertEquals(new_user,new_repo.findElement(2L));
         assertThrows(RepositoryException.class,() -> new_repo.addElement(new_user),"The entity with this ID already exists in the list!");
@@ -67,7 +73,7 @@ class MemoryRepositoryTest {
         assertThrows(RepositoryException.class,() -> new_repo.deleteElement(1L),"The entity with this ID couldn't be found!");
         new_repo.deleteElement(2L);
 
-        Iterable<User> iter = new_repo.findAll();
+        Iterable<User> iter = new_repo.findAll((_) -> true);
 
         assertThrows(RepositoryException.class,() -> new_repo.findElement(2L),"The entity with this ID couldn't be found!");
         assertEquals(iter.iterator().next(),new_repo.findElement(3L));

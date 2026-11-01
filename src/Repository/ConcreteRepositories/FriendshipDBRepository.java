@@ -5,6 +5,9 @@ import Domain.Objects.Pair;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 /**
  * This class represents a database-backed repository for friendships.
  * The repository operations are currently not implemented.
@@ -43,7 +46,7 @@ public class FriendshipDBRepository implements Repository<Pair<Long>, Friendship
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public Iterable<Friendship> findAll() {
+    public List<Friendship> findAll(Predicate<Friendship> filter) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 

@@ -30,7 +30,7 @@ void main() {
     Repository<Long,User> userRepo = factory.createUserRepository(userValidator);
 
     Validator<Friendship> friendshipValidator = new FriendshipValidator();
-    Repository<Pair<Long>, Friendship> friendshipRepo = factory.createFriendshipRepository(userRepo,friendshipValidator);
+    Repository<Pair<Long>, Friendship> friendshipRepo = factory.createFriendshipRepository(friendshipValidator);
 
     ConsoleUserService userService = new ConsoleUserService(userRepo);
     ConsoleFriendshipService friendshipService = new ConsoleFriendshipService(friendshipRepo,userRepo);

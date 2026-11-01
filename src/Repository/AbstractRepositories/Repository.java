@@ -4,6 +4,9 @@ import Domain.Objects.Entity;
 import Domain.Validation.ValidationException;
 import Repository.Exceptions.RepositoryException;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 /**
  * This interface defines operations for storing and retrieving entities.
  * @param <ID> the type of the entities' identifiers;
@@ -17,10 +20,11 @@ public interface Repository<ID,E extends Entity<ID>>{
     int size();
 
     /**
-     * This function returns all entities in the repository.
-     * @return an iterable containing the stored entities;
+     * This function returns a list of the entities in the repository that are accepted by the filter.
+     * @param filter a predicate which acts as a filter for the entities;
+     * @return A list of the filtered entities in the repository.
      */
-    Iterable<E> findAll();
+    List<E> findAll(Predicate<E> filter);
 
     /**
      * This function finds an entity by its identifier.

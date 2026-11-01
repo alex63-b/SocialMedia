@@ -8,6 +8,7 @@ import Domain.Validation.UserValidator;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.AbstractRepositories.Repository;
+import Repository.Exceptions.ConfigException;
 import Repository.Factory.PropertyFactory;
 import Repository.Factory.RepositoryFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -74,8 +75,11 @@ class RepositoryFactoryTest {
 
         Validator<User> userValidator = new UserValidator();
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
+
+        assertThrows(ConfigException.class,() -> factory.createFriendshipRepository(friendshipValidator));
+
         Repository<Long,User> userRepository = factory.createUserRepository(userValidator);
-        Repository<Pair<Long>,Friendship> friendshipFileRepo = factory.createFriendshipRepository(userRepository,friendshipValidator);
+        Repository<Pair<Long>,Friendship> friendshipFileRepo = factory.createFriendshipRepository(friendshipValidator);
 
         assertEquals(2,friendshipFileRepo.size());
 

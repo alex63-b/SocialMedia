@@ -13,12 +13,15 @@ new friendship repository.
 For changing to the database mode, you only need to change the repository.type parameter from the config file to DATABASE, and it will
 start the application on database mode.
 
+For changing to memory mode, you just need to change the type parameter to MEMORY in the config file.
+
 
 If one of the files used by the repositories doesn't exist, it is created and the repository will start with no entries in it, because
 the file is empty.
 
 If one of the files used by the repositories has a corrupt line, then the program will print the corrupt lines of the file in the console,
-and the corrupt lines will not be loaded in the repository. T
+and the corrupt lines will not be loaded in the repository. I chose this behavior because it is easier to fix up a corrupted file if all the
+invalid lines are shown, as you know every line that is wrong, and the application will still be able to run without a file full of correct data.
 
 
 SOLID Principles:
@@ -73,3 +76,60 @@ list is changed, without too much coupling.
 
 Simple Factory:
 Used in PropertyFactory and in RepositoryFactory, to generate properties and repositories respectively.
+
+------------------------------------------------------------ Laboratory 4 --------------------------------------------------------------------------------------
+
+Some of the replaced loops are:
+
+1. The loop in class MemoryRepository, in the method findAll(), that was iterating through the list of objects, is now a stream, which
+uses filter to filter the unwanted entries, and a toList() to return the list of filtered items.
+
+2. The loop in class FriendshipHelper, in the method updateHelper(formerly found in the classes FriendshipFileRepository and
+ObserverMemoryFriendshipRepository), that was iterating through the list of friendships to keep the integrity of the repository,
+is now made of 2 streams.
+
+The first stream deletes the friendships which have missing users, and it does so by using a map to identify which users catch the exception. Then,
+the Optional objects are filtered so only the existing ones remain, then they are mapped back to their ID's, and then the entries with those ID's
+are deleted.
+
+The second stream just goes through every user and modifies the data if it is necessary.
+
+3. The loop in class BasicUserService, function setNextID(), that was iterating through the users to find the maximum ID, is now a stream,
+which uses max() with a comparator to get the user with the maximum ID, and then get its ID.
+
+4. The loop in class BasicFriendshipService, function getMostSociableCommunity, that was initializing the adjacency matrix for
+the Roy-Warshall, is replaced by 2 nested streams. Both streams are IntStreams that simulate the for-in-for with a forEach, but the second stream
+also has a filter to only initialize fields that are not on the diagonal or that are already initialized.
+
+5. The loop in class FileRepository, function storeIntoFile(), that was iterating through the entities to convert them into file lines and then
+write them, was replaced by a stream. That stream takes all the objects, uses a map() to map them to the lines, and then uses a toList to store
+the result in a list of strings, and the strings are then written in the file.
+
+Functional interfaces used:
+
+- Validator<E>, which was used in many places as a simple class, but it was used in BasicUserService to add a new validation rule using andThen;
+- Predicate<E>, which was used in findAll() as a parameter for a filter, and in many other situations where findAll() and filter() were used,
+this functional interface was used;
+- Function<R,T>, which was used in stream mapping, like in storeIntoFile to convert objects into lines, in the most sociable community to
+make the final conversion from the ID's in the community to users, and in other places;
+- Comparator<T>, which was used in getting the maximum ID from the repository of users to generate the next ID;
+
+In the repository, the cases where the entities aren't found/other errors, the program throws an exception, so the return type of these functions
+is void, so the discussion Optional<> vs null is pointless here.
+
+Also, in this project I kept the Template design pattern, because giving the Function objects to the FileRepository would pose a big
+disadvantage to the current code. In this project, the file repositories also have separate integrity rules that must be kept, and those
+rules are managed by functions in their separate repositories. However, if we made the change so that the FileRepository receives those parameters,
+we would still need those integrity rules somewhere, and implementing a new system with these restrictions would be much more difficult than
+keeping the Template method, so I chose to keep it for simplicity.
+
+There are still 2 places where loops are intact, and those places are:
+
+1. The Roy-Warshall for loops in the most sociable community function are still there, as the algorithm modifies the matrix and gets the maximum
+ length road along the way. Because lambda expressions don't let anyone modify outside variables as they are considered final, implementing those
+ operations with streams would be much more difficult and unintuitive, so it would only add to the complexity of the program without added
+ maintainability.
+
+ 2. The main loop that handles the UI in MainMenu is still there as we can't know what does the user want from the program, and for how many loops
+ this loop will run. So, the streams aren't a good option for this, but there is also the fact that the data in the program is modified in the
+ loop, so a stream will not be able to handle those operations normally.

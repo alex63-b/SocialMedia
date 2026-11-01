@@ -60,6 +60,9 @@ public class Pair<E extends Comparable<E>> {
      */
     @Override
     public boolean equals(Object other){
+        if(other == null){
+            return false;
+        }
         if(other instanceof Pair<?> pair){
             return pair.firstElement == this.firstElement && pair.secondElement == this.secondElement;
         }
