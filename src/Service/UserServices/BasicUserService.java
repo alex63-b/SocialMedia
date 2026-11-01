@@ -6,7 +6,7 @@ import Domain.Validation.UserValidator;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Filters.DefaultFilters;
+import Repository.Helpers.DefaultFilters;
 
 import java.util.Comparator;
 import java.util.Optional;

@@ -4,7 +4,7 @@ import Domain.Objects.Entity;
 import Domain.Validation.ValidationException;
 import Domain.Validation.Validator;
 import Repository.Exceptions.RepositoryException;
-import Repository.Filters.DefaultFilters;
+import Repository.Helpers.DefaultFilters;
 
 import java.io.*;
 import java.nio.file.Files;

@@ -1,17 +1,13 @@
-package Repository.Observer;
+package Repository.Helpers;
 
 import Domain.Objects.Friendship;
 import Domain.Objects.Pair;
 import Domain.Objects.User;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Filters.DefaultFilters;
 
 import java.security.KeyException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class is made to provide helping functions for the concrete friendship repositories with observers, so the

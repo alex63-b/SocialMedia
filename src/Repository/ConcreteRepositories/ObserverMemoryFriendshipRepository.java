@@ -8,13 +8,8 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.MemoryRepository;
 import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Filters.DefaultFilters;
-import Repository.Observer.FriendshipHelper;
+import Repository.Helpers.FriendshipHelper;
 import Repository.Observer.FriendshipObserver;
-
-import java.security.KeyException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class stores friendships in memory and synchronizes them with user repository changes.

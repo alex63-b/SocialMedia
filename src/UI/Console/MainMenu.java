@@ -128,9 +128,7 @@ public class MainMenu implements ConsoleMenu{
         }
         else {
             System.out.println("The most sociable community is:\n");
-            for (User u : community) {
-                System.out.println(u);
-            }
+            community.stream().forEach(System.out::println);
         }
     }
 

@@ -6,9 +6,13 @@ import Domain.Objects.User;
 import Domain.Validation.ValidationException;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
+import Repository.Helpers.DefaultFilters;
+import Repository.Helpers.DefaultSuppliers;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * This class provides operations for managing friendships and analyzing user communities.
@@ -58,20 +62,12 @@ public class BasicFriendshipService {
         friendshipRepo.deleteElement(new Pair<>(friendId1,friendId2));
     }
 
-    private void BFS(Map<Long,Boolean> idTracker, Long startID){
-        Queue<Long> bfsQueue = new ArrayDeque<>();
-        bfsQueue.add(startID);
-        while(!bfsQueue.isEmpty()){
-            Long id = bfsQueue.element();
-            User currentUser = userRepo.findElement(id);
-            idTracker.put(id,true);
-            bfsQueue.poll();
-            for(User friend : currentUser.getFriends()){
-                if(idTracker.get(friend.getId()) == false){
-                    bfsQueue.add(friend.getId());
-                }
-            }
-        }
+    private void DFS(Map<Long,Long> idTracker, Long startID, Long componentCount){
+        idTracker.put(startID,componentCount);
+        User currentUser = userRepo.findElement(startID);
+        currentUser.getFriends().stream()
+                .filter((friend) -> idTracker.get(friend.getId()) == 0)
+                .forEach((friend) -> DFS(idTracker,friend.getId(),componentCount));
     }
 
     /**
@@ -80,18 +76,16 @@ public class BasicFriendshipService {
      * @throws RepositoryException if a user referenced by a friendship cannot be found;
      */
     public int communityCount(){
-        Map<Long,Boolean> idTracker = new HashMap<>();
-        for(User u : userRepo.findAll((_) -> true)){
-            idTracker.put(u.getId(),false);
-        }
-        int count = 0;
-        for(User u : userRepo.findAll((_) -> true)){
-            if(idTracker.get(u.getId()) == false) {
-                count += 1;
-                BFS(idTracker, u.getId());
-            }
-        }
-        return count;
+        Map<Long,Long> idTracker = userRepo.findAll(DefaultFilters::filterTrue).stream()
+                                              .collect(Collectors.toMap(User::getId, DefaultSuppliers::get0));
+        idTracker.keySet().stream()
+                .forEach((id) -> {
+                    if(idTracker.get(id) == 0) {
+                        DFS(idTracker, id, id);
+                    }
+                });
+        return idTracker.values().stream()
+                .collect(Collectors.groupingBy(DefaultSuppliers::getIdentity)).size();
     }
 
     /**
@@ -102,32 +96,36 @@ public class BasicFriendshipService {
     public ArrayList<User> getMostSociableCommunity(){
         Map<Long,Integer> idToPosition = new HashMap<>();
         Map<Integer,Long> positionToId = new HashMap<>();
-        int position = 0;
-        for(User u : userRepo.findAll((_) -> true)){
+
+        List<User> users = userRepo.findAll(DefaultFilters::filterTrue);
+
+        IntStream.range(0,users.size()).forEach(position -> {
+            User u = users.get(position);
             idToPosition.put(u.getId(),position);
             positionToId.put(position, u.getId());
-            position += 1;
-        }
+        });
+        int position = users.size();
+
         int maxLenRoad = 0;
         int maxPosition = -1;
-
+        final int finalPosition = position;
         int[][] adjacencyMatrix = new int[position][position];
-        for(Friendship f : friendshipRepo.findAll((_) -> true)){
+        if(friendshipRepo.size() > 0){
+            maxLenRoad = 1;
+            maxPosition = idToPosition.get(friendshipRepo.findAll(DefaultFilters::filterTrue).getFirst().getFriend1().getId());
+        }
+        friendshipRepo.findAll(DefaultFilters::filterTrue).forEach((f) -> {
             int i = idToPosition.get(f.getFriend1().getId());
             int j = idToPosition.get(f.getFriend2().getId());
             adjacencyMatrix[i][j] = 1;
             adjacencyMatrix[j][i] = 1;
-            maxLenRoad = 1;
-            maxPosition = i;
-        }
+        });
         int len_max = 1000000000;
-        for(int i = 0; i < position; i++){
-            for(int j = 0; j < position; j++){
-                if(i != j && adjacencyMatrix[i][j] != 1) {
-                    adjacencyMatrix[i][j] = len_max;
-                }
-            }
-        }
+        IntStream.range(0,finalPosition).forEach((i) -> {
+            IntStream.range(0,finalPosition)
+                    .filter((j) -> i != j && adjacencyMatrix[i][j] != 1)
+                    .forEach((j) -> adjacencyMatrix[i][j] = len_max);
+        });
         if(maxLenRoad == 0) {
             return new ArrayList<>();
         }
@@ -146,17 +144,13 @@ public class BasicFriendshipService {
         }
 
         Long idStart = positionToId.get(maxPosition);
-        Map<Long,Boolean> idTracker = new TreeMap<>();
-        for(User u : userRepo.findAll((_) -> true)){
-            idTracker.put(u.getId(),false);
-        }
-        ArrayList<User> userList = new ArrayList<>();
-        BFS(idTracker,idStart);
-        for(Long id : idTracker.keySet()){
-            if(idTracker.get(id)){
-                userList.add(userRepo.findElement(id));
-            }
-        }
-        return userList;
+        Map<Long,Long> idTracker = userRepo.findAll(DefaultFilters::filterTrue).stream()
+                        .collect(Collectors.toMap(User::getId,DefaultSuppliers::get0));
+
+        DFS(idTracker,idStart,idStart);
+        return new ArrayList<>(idTracker.keySet().stream()
+                .filter((id) -> idTracker.get(id) != 0)
+                .map(userRepo::findElement)
+                .toList());
     }
 }

@@ -4,7 +4,7 @@ import Domain.Objects.Friendship;
 import Domain.Objects.Pair;
 import Domain.Objects.User;
 import Repository.AbstractRepositories.Repository;
-import Repository.Filters.DefaultFilters;
+import Repository.Helpers.DefaultFilters;
 
 /**
  * This class adds console-oriented display functionality to the friendship service.

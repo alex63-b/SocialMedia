@@ -8,14 +8,12 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.FileRepository;
 import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Observer.FriendshipHelper;
+import Repository.Helpers.FriendshipHelper;
 import Repository.Observer.FriendshipObserver;
 
 import java.io.IOException;
-import java.security.KeyException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
 
 /**
  * This class stores friendships in a file and observes changes to the user repository.
