@@ -6,6 +6,10 @@ import Domain.Validation.UserValidator;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
+import Repository.Filters.DefaultFilters;
+
+import java.util.Comparator;
+import java.util.Optional;
 
 /**
  * This class provides basic operations for managing users.
@@ -16,12 +20,13 @@ public class BasicUserService {
     private Long nextID;
 
     private void setNextID(){
-        for(User u : repository.findAll()){
-            if(u.getId() > nextID){
-                nextID = u.getId();
-            }
+        Optional<User> maxUser = repository.findAll(DefaultFilters::filterTrue).stream().max(Comparator.comparing(User::getId));
+        if(maxUser.isPresent()) {
+            nextID = maxUser.get().getId() + 1;
         }
-        nextID += 1;
+        else{
+            nextID = 1L;
+        }
     }
 
     /**
@@ -30,7 +35,14 @@ public class BasicUserService {
      */
     public BasicUserService(Repository<Long, User> repository){
         this.repository = repository;
-        this.validator = new UserValidator();
+        this.validator = new UserValidator().andThen((user) -> {
+            if(!user.getName().matches("[a-zA-Z -]+")){
+                throw new ValidationException("The name must contain only letters!");
+            }
+            if(!user.getFirstName().matches("[a-zA-Z -]+")){
+                throw new ValidationException("The first name must contain only letters!");
+            }
+        });
         nextID = 0L;
         setNextID();
     }
@@ -39,12 +51,12 @@ public class BasicUserService {
      * This function validates and adds a user using the next available ID.
      * The {@code email} value is stored as the user's first name.
      * @param name the user's name;
-     * @param email the value used as the user's first name;
+     * @param firstName the value used as the user's first name;
      * @throws ValidationException if either user name field is empty;
      * @throws RepositoryException if the user cannot be added to the repository;
      */
-    public void addUser(String name, String email) {
-        User new_user = new User(nextID,name,email);
+    public void addUser(String name, String firstName) {
+        User new_user = new User(nextID,name,firstName);
         validator.validate(new_user);
         repository.addElement(new_user);
         nextID += 1;

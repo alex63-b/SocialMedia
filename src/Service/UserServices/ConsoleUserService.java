@@ -2,6 +2,7 @@ package Service.UserServices;
 
 import Domain.Objects.User;
 import Repository.AbstractRepositories.Repository;
+import Repository.Filters.DefaultFilters;
 
 /**
  * This class adds console-oriented display functionality to the user service.
@@ -17,14 +18,12 @@ public class ConsoleUserService extends BasicUserService {
 
     /**
      * This function returns a string containing all users in the repository.
-     * @return the users, one per line;
+     * @return the string form of the users, one per line;
      */
     public String showAllUsers(){
         StringBuilder result = new StringBuilder();
-        for(User u : repository.findAll()){
-            result.append(u);
-            result.append("\n");
-        }
+        repository.findAll(DefaultFilters::filterTrue)
+                .forEach((u) -> result.append(u).append("\n"));
         return result.toString();
     }
 }

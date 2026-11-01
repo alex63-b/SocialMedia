@@ -64,7 +64,7 @@ class UserFileRepositoryTest {
 
         Repository<Long,User> test_repo = new UserFileRepository(validator,"test_data/Users/user_data.csv");
         assertEquals(4,test_repo.size());
-        for(User u : test_repo.findAll()){
+        for(User u : test_repo.findAll((_) -> true)){
             assertEquals(u,new_repo.findElement(u.getId()));
         }
     }

@@ -8,7 +8,8 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.FileRepository;
 import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Observer.FileRepoObserver;
+import Repository.Observer.FriendshipHelper;
+import Repository.Observer.FriendshipObserver;
 
 import java.io.IOException;
 import java.security.KeyException;
@@ -19,8 +20,9 @@ import java.util.*;
 /**
  * This class stores friendships in a file and observes changes to the user repository.
  */
-public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friendship> implements FileRepoObserver {
+public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friendship> implements FriendshipObserver {
     ObservableUserRepository user_repo;
+    FriendshipHelper friendshipHelper;
 
     /**
      * This function creates a friendship repository backed by a file and registers it with the user repository.
@@ -31,6 +33,7 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      */
     public FriendshipFileRepository(ObservableUserRepository user_repo, Validator<Friendship> validator, String fileName) {
         this.user_repo = user_repo;
+        friendshipHelper = FriendshipHelper.getFriendshipHelper();
         super(validator, fileName);
         user_repo.addObserver(this);
     }
@@ -74,34 +77,6 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
         return entity.getFriend1().getId() + "," + entity.getFriend2().getId() + "," + entity.getDate();
     }
 
-    private void checkEqualFriendships(Friendship f1, Friendship f2) throws RepositoryException {
-        if (f1.getFriend1().equals(f2.getFriend1()) && f1.getFriend2().equals(f2.getFriend2())) {
-            throw new RepositoryException("There can't be more than one friendship with the same friends!",new KeyException());
-        }
-        if (f1.getFriend1().equals(f2.getFriend2()) && f1.getFriend2().equals(f2.getFriend1())) {
-            throw new RepositoryException("There can't be more than one friendship with the same friends!",new KeyException());
-        }
-    }
-    private void validateRelations(Friendship new_element){
-        for(Friendship f1 : findAll()) {
-            checkEqualFriendships(f1,new_element);
-        }
-        User friend1 = new_element.getFriend1();
-        User friend2 = new_element.getFriend2();
-        try {
-            User trueFriend1 = user_repo.findElement(friend1.getId());
-            User trueFriend2 = user_repo.findElement(friend2.getId());
-            if(!trueFriend1.equalsEveryField(friend1)){
-                throw new RepositoryException("The first friend in the friendship has wrong data for its ID!",new KeyException());
-            }
-            if(!trueFriend2.equalsEveryField(friend2)){
-                throw new RepositoryException("The second friend in the friendship has wrong data for its ID!",new KeyException());
-            }
-        }
-        catch (RepositoryException e){
-            throw new RepositoryException("The added friendship isn't between 2 existing users!",e.getCause());
-        }
-    }
     private void addFriendsAfterAdd(Friendship new_element){
         new_element.getFriend1().addFriend(new_element.getFriend2());
         new_element.getFriend2().addFriend(new_element.getFriend1());
@@ -131,7 +106,7 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      */
     @Override
     public void addElement(Friendship new_element) throws RepositoryException, RepositoryException {
-        validateRelations(new_element);
+        friendshipHelper.validateRelations(new_element,user_repo,this);
         super.addElement(new_element);
         addFriendsAfterAdd(new_element);
     }
@@ -144,7 +119,7 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      */
     @Override
     protected void noStoreAddElement(Friendship new_element) throws RepositoryException, RepositoryException {
-        validateRelations(new_element);
+        friendshipHelper.validateRelations(new_element,user_repo,this);
         super.noStoreAddElement(new_element);
         addFriendsAfterAdd(new_element);
     }
@@ -160,14 +135,7 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
         User oldFriend1 = findElement(new_element.getId()).getFriend1();
         User oldFriend2 = findElement(new_element.getId()).getFriend2();
         super.modifyElement(new_element);
-        if(!oldFriend1.equals(new_element.getFriend1())){
-            oldFriend1.removeFriend(oldFriend2);
-            new_element.getFriend1().addFriend(new_element.getFriend2());
-        }
-        if(!oldFriend2.equals(new_element.getFriend2())){
-            oldFriend2.removeFriend(oldFriend1);
-            new_element.getFriend2().addFriend(new_element.getFriend1());
-        }
+        friendshipHelper.updateFriends(new_element,oldFriend1,oldFriend2);
     }
 
     /**
@@ -177,23 +145,6 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      */
     @Override
     public void update() {
-        List<Pair<Long>> deleteList = new ArrayList<>();
-        for(Friendship f : findAll()){
-            Long friendId1 = f.getFriend1().getId();
-            Long friendId2 = f.getFriend2().getId();
-            try{
-                User newFriend1 = user_repo.findElement(friendId1);
-                User newFriend2 = user_repo.findElement(friendId2);
-                if(!f.getFriend1().equalsEveryField(newFriend1) || !f.getFriend2().equalsEveryField(newFriend2)){
-                    modifyElement(new Friendship(newFriend1,newFriend2,f.getDate()));
-                }
-            }
-            catch (RepositoryException e) {
-                deleteList.add(f.getId());
-            }
-        }
-        for(Pair<Long> id : deleteList){
-            deleteElement(id);
-        }
+        friendshipHelper.updateHelper(user_repo,this);
     }
 }

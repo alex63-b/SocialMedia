@@ -49,7 +49,7 @@ public class BasicUserServiceTest {
 
         assertThrows(ValidationException.class,() -> service.addUser("Killie Davis",""));
 
-        service.addUser("Killie Davis","killiedavis@gmail.com");
+        service.addUser("Killie Davis","killiedavis");
         assertEquals(4,repo.size());
         assertEquals("Killie Davis",repo.findElement(4L).getName());
     }

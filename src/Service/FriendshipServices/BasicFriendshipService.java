@@ -81,11 +81,11 @@ public class BasicFriendshipService {
      */
     public int communityCount(){
         Map<Long,Boolean> idTracker = new HashMap<>();
-        for(User u : userRepo.findAll()){
+        for(User u : userRepo.findAll((_) -> true)){
             idTracker.put(u.getId(),false);
         }
         int count = 0;
-        for(User u : userRepo.findAll()){
+        for(User u : userRepo.findAll((_) -> true)){
             if(idTracker.get(u.getId()) == false) {
                 count += 1;
                 BFS(idTracker, u.getId());
@@ -103,7 +103,7 @@ public class BasicFriendshipService {
         Map<Long,Integer> idToPosition = new HashMap<>();
         Map<Integer,Long> positionToId = new HashMap<>();
         int position = 0;
-        for(User u : userRepo.findAll()){
+        for(User u : userRepo.findAll((_) -> true)){
             idToPosition.put(u.getId(),position);
             positionToId.put(position, u.getId());
             position += 1;
@@ -112,7 +112,7 @@ public class BasicFriendshipService {
         int maxPosition = -1;
 
         int[][] adjacencyMatrix = new int[position][position];
-        for(Friendship f : friendshipRepo.findAll()){
+        for(Friendship f : friendshipRepo.findAll((_) -> true)){
             int i = idToPosition.get(f.getFriend1().getId());
             int j = idToPosition.get(f.getFriend2().getId());
             adjacencyMatrix[i][j] = 1;
@@ -147,7 +147,7 @@ public class BasicFriendshipService {
 
         Long idStart = positionToId.get(maxPosition);
         Map<Long,Boolean> idTracker = new TreeMap<>();
-        for(User u : userRepo.findAll()){
+        for(User u : userRepo.findAll((_) -> true)){
             idTracker.put(u.getId(),false);
         }
         ArrayList<User> userList = new ArrayList<>();

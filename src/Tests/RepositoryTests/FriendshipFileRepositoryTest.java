@@ -88,7 +88,7 @@ public class FriendshipFileRepositoryTest {
         FriendshipFileRepository friendship_repo_2 = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
 
         int length = 0;
-        for(Friendship f : friendship_repo_2.findAll()){
+        for(Friendship f : friendship_repo_2.findAll((_) -> true)){
             length += 1;
             assertEquals(f,friendship_repo.findElement(f.getId()));
         }
@@ -105,7 +105,7 @@ public class FriendshipFileRepositoryTest {
 
         assertEquals(1, friendship_repo.size());
 
-        for(Friendship f : friendship_repo.findAll()){
+        for(Friendship f : friendship_repo.findAll((_) -> true)){
             assertEquals(1L,f.getFriend1().getId());
             assertEquals(3L,f.getFriend2().getId());
         }

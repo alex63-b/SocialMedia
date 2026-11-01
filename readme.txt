@@ -13,12 +13,15 @@ new friendship repository.
 For changing to the database mode, you only need to change the repository.type parameter from the config file to DATABASE, and it will
 start the application on database mode.
 
+For changing to memory mode, you just need to change the type parameter to MEMORY in the config file.
+
 
 If one of the files used by the repositories doesn't exist, it is created and the repository will start with no entries in it, because
 the file is empty.
 
 If one of the files used by the repositories has a corrupt line, then the program will print the corrupt lines of the file in the console,
-and the corrupt lines will not be loaded in the repository. T
+and the corrupt lines will not be loaded in the repository. I chose this behavior because it is easier to fix up a corrupted file if all the
+invalid lines are shown, as you know every line that is wrong, and the application will still be able to run without a file full of correct data.
 
 
 SOLID Principles:

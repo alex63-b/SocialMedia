@@ -4,6 +4,7 @@ import Domain.Objects.Friendship;
 import Domain.Objects.Pair;
 import Domain.Objects.User;
 import Repository.AbstractRepositories.Repository;
+import Repository.Filters.DefaultFilters;
 
 /**
  * This class adds console-oriented display functionality to the friendship service.
@@ -24,10 +25,9 @@ public class ConsoleFriendshipService extends BasicFriendshipService {
      */
     public String showAllFriendships(){
         StringBuilder text = new StringBuilder();
-        for(Friendship f : friendshipRepo.findAll()){
-            text.append(f.toString());
-            text.append("\n");
-        }
+        friendshipRepo.findAll(DefaultFilters::filterTrue).stream().forEach((f) -> {
+            text.append(f.toString()).append("\n");
+        });
         return text.toString();
     }
 }

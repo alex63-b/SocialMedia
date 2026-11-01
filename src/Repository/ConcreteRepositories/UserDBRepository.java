@@ -5,6 +5,9 @@ import Domain.Objects.User;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 
+import java.util.List;
+import java.util.function.Predicate;
+
 /**
  * This class represents a database-backed repository for users.
  * The repository operations are currently not implemented.
@@ -36,14 +39,13 @@ public class UserDBRepository implements Repository<Long, User> {
     public int size() {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
-
     /**
      * This function returns all users in the repository.
      * @return the stored users;
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public Iterable<User> findAll() {
+    public List<User> findAll(Predicate<User> filter) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
