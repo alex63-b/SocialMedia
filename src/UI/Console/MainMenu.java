@@ -10,6 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class implements the application's interactive console menu.
@@ -58,7 +59,8 @@ public class MainMenu implements ConsoleMenu{
         System.out.println("6. Delete an existing friendship;");
         System.out.println("7. Show community count;");
         System.out.println("8. Show the most sociable community;");
-        System.out.println("9. Exit the application;");
+        System.out.println("9. Filter the users by name;");
+        System.out.println("10. Exit the application;");
     }
     private void showUsers(){
         System.out.println(userService.showAllUsers());
@@ -128,12 +130,26 @@ public class MainMenu implements ConsoleMenu{
         }
         else {
             System.out.println("The most sociable community is:\n");
-            for (User u : community) {
-                System.out.println(u);
-            }
+            community.stream().forEach(System.out::println);
         }
     }
-
+    private void showUsersWithName(){
+        try {
+            System.out.println("The users will be filtered after their name, their name must contain the given string from the console.");
+            System.out.println("Insert the string after which the users will be filtered: ");
+            String nameFragment = read.readLine();
+            List<User> community = userService.searchByName(nameFragment);
+            if(community.isEmpty()){
+                System.out.println("No users have been found!");
+            }
+            else {
+                community.forEach(System.out::println);
+            }
+        }
+        catch (IOException e) {
+            System.out.println("Something went wrong with the read!");
+        }
+    }
     /**
      * This function runs the menu until the user chooses to exit.
      */
@@ -160,7 +176,8 @@ public class MainMenu implements ConsoleMenu{
                 case "6" -> deleteFriendship();
                 case "7" -> showCommunityCount();
                 case "8" -> showMostSociableCommunity();
-                case "9" -> appStopped = true;
+                case "9" -> showUsersWithName();
+                case "10" -> appStopped = true;
                 default -> System.out.println("You did not enter a valid option, please try again.");
             }
         }

@@ -4,8 +4,13 @@ import Domain.Objects.Entity;
 import Domain.Validation.ValidationException;
 import Domain.Validation.Validator;
 import Repository.Exceptions.RepositoryException;
+import Repository.Helpers.DefaultFilters;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * This class stores entities in a file and provides repository operations for them.
@@ -50,25 +55,34 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * @throws RepositoryException if the file cannot be created or opened;
      */
     protected void loadFromFile() throws RepositoryException, ValidationException {
-        try(BufferedReader reader = new BufferedReader(new FileReader(fileName))){
-            String line;
-            int counter = 0;
-            while((line = reader.readLine()) != null){
-                counter += 1;
-                if(line.isEmpty()){
-                    continue;
-                }
-                try {
-                    E new_entity = lineToEntity(line);
-                    validator.validate(new_entity);
-                    noStoreAddElement(new_entity);
-                }
-                catch (ValidationException | RepositoryException e) {
-                    System.out.println("Line " + counter + ": " + e.getMessage());
-                }
-            }
+        try(var lines = Files.lines(Path.of(fileName))){
+            List<String> filteredLines = lines
+                    .filter(DefaultFilters::filterNotEmptyLines)
+                    .toList();
+            IntStream.range(0,filteredLines.size())
+                    .forEach((n) -> {
+                        try {
+                            E new_entity = lineToEntity(filteredLines.get(n));
+                            validator.validate(new_entity);
+                            noStoreAddElement(new_entity);
+                        }
+                        catch (ValidationException | RepositoryException e) {
+                            System.out.println("Line " + n + ": " + e.getMessage());
+                        }
+                    });
+            filteredLines.stream()
+                    .forEach((line) -> {
+                        try {
+                            E new_entity = lineToEntity(line);
+                            validator.validate(new_entity);
+                            noStoreAddElement(new_entity);
+                        }
+                        catch (ValidationException | RepositoryException _) {
+
+                        }
+                    });
         }
-        catch (IOException e) {
+        catch (IOException e){
             try {
                 File newFile = new File(fileName);
                 if(!newFile.createNewFile()){
@@ -80,18 +94,14 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
             }
         }
     }
-
     private void storeIntoFile() throws RepositoryException, ValidationException{
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))){
-            boolean first = true;
-            for(E e : findAll()){
-                validator.validate(e);
-                if(!first){
-                    writer.write("\n");
-                }
-                writer.write(entityToLine(e));
-                first = false;
-            }
+        findAll(DefaultFilters::filterTrue).stream()
+                .forEach(validator::validate);
+        List<String> lines = findAll(DefaultFilters::filterTrue).stream()
+                .map(this::entityToLine)
+                .toList();
+        try{
+            Files.write(Path.of(fileName),lines);
         }
         catch (IOException e) {
             throw new RepositoryException("The file couldn't be opened for writing!",e.getCause());

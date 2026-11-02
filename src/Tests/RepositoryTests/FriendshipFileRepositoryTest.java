@@ -11,6 +11,7 @@ import Repository.AbstractRepositories.Repository;
 import Repository.ConcreteRepositories.FriendshipFileRepository;
 import Repository.ConcreteRepositories.UserFileRepository;
 import Repository.Exceptions.RepositoryException;
+import Repository.Helpers.DefaultFilters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ public class FriendshipFileRepositoryTest {
         FriendshipFileRepository friendship_repo_2 = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
 
         int length = 0;
-        for(Friendship f : friendship_repo_2.findAll()){
+        for(Friendship f : friendship_repo_2.findAll(DefaultFilters::filterTrue)){
             length += 1;
             assertEquals(f,friendship_repo.findElement(f.getId()));
         }
@@ -105,7 +106,7 @@ public class FriendshipFileRepositoryTest {
 
         assertEquals(1, friendship_repo.size());
 
-        for(Friendship f : friendship_repo.findAll()){
+        for(Friendship f : friendship_repo.findAll(DefaultFilters::filterTrue)){
             assertEquals(1L,f.getFriend1().getId());
             assertEquals(3L,f.getFriend2().getId());
         }

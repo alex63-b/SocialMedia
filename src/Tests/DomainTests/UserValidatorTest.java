@@ -19,4 +19,16 @@ class UserValidatorTest {
         User perfect = new User(34L,"John Smith","a@b.c");
         validator.validate(perfect);
     }
+    @Test
+    void test_chainedConditions(){
+        Validator<User> validator = new UserValidator();
+        Validator<User> strictValidator = new UserValidator().andThen((user) -> {
+            if(!user.getName().matches("[a-zA-Z]+")){
+                throw new ValidationException("The name must contain only letters!");
+            }
+        });
+        User nameError = new User(34L,"X-Kee","bro");
+        validator.validate(nameError);
+        assertThrows(ValidationException.class,() -> strictValidator.validate(nameError));
+    }
 }

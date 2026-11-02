@@ -5,6 +5,7 @@ import Domain.Validation.UserValidator;
 import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 import Repository.ConcreteRepositories.UserFileRepository;
+import Repository.Helpers.DefaultFilters;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,7 @@ class UserFileRepositoryTest {
 
         Repository<Long,User> test_repo = new UserFileRepository(validator,"test_data/Users/user_data.csv");
         assertEquals(4,test_repo.size());
-        for(User u : test_repo.findAll()){
+        for(User u : test_repo.findAll(DefaultFilters::filterTrue)){
             assertEquals(u,new_repo.findElement(u.getId()));
         }
     }

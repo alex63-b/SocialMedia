@@ -6,7 +6,7 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.MemoryRepository;
 import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.Exceptions.RepositoryException;
-import Repository.Observer.FileRepoObserver;
+import Repository.Observer.FriendshipObserver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  * This class stores users in memory and notifies observers when users change.
  */
 public class ObservableMemoryUserRepository extends MemoryRepository<Long, User> implements ObservableUserRepository {
-    private final List<FileRepoObserver> observers = new ArrayList<>();
+    private final List<FriendshipObserver> observers = new ArrayList<>();
 
     /**
      * This function creates an observable in-memory user repository.
@@ -31,7 +31,7 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      * @param new_observer the observer to register;
      */
     @Override
-    public void addObserver(FileRepoObserver new_observer) {
+    public void addObserver(FriendshipObserver new_observer) {
 
         observers.add(new_observer);
     }
@@ -41,7 +41,7 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      * @param deleted_observer the observer to remove;
      */
     @Override
-    public void removeObserver(FileRepoObserver deleted_observer) {
+    public void removeObserver(FriendshipObserver deleted_observer) {
 
         observers.remove(deleted_observer);
     }
@@ -51,9 +51,7 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      */
     @Override
     public void notifyObservers() {
-        for (FileRepoObserver observer : List.copyOf(observers)) {
-            observer.update();
-        }
+        observers.stream().forEach(FriendshipObserver::update);
     }
 
     /**
