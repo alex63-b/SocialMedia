@@ -6,6 +6,7 @@ import Domain.Objects.User;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.RepositoryException;
 
+import java.io.InvalidObjectException;
 import java.security.KeyException;
 import java.util.Optional;
 
@@ -53,9 +54,9 @@ public class FriendshipHelper {
                 .forEach(f1 -> checkEqualFriendships(f1, new_element));
         User friend1 = new_element.getFriend1();
         User friend2 = new_element.getFriend2();
-        try {
-            User trueFriend1 = user_repo.findElement(friend1.getId());
-            User trueFriend2 = user_repo.findElement(friend2.getId());
+        if(user_repo.findElement(friend1.getId()).isPresent() && user_repo.findElement(friend2.getId()).isPresent()){
+            User trueFriend1 = user_repo.findElement(friend1.getId()).get();
+            User trueFriend2 = user_repo.findElement(friend2.getId()).get();
             if(!trueFriend1.equalsEveryField(friend1)){
                 throw new RepositoryException("The first friend in the friendship has wrong data for its ID!",new KeyException());
             }
@@ -63,8 +64,8 @@ public class FriendshipHelper {
                 throw new RepositoryException("The second friend in the friendship has wrong data for its ID!",new KeyException());
             }
         }
-        catch (RepositoryException e){
-            throw new RepositoryException("The added friendship isn't between 2 existing users!",e.getCause());
+        else{
+            throw new RepositoryException("The added friendship isn't between 2 existing users!",new InvalidObjectException(""));
         }
     }
 
@@ -96,12 +97,10 @@ public class FriendshipHelper {
                 .map((f) -> {
                     Long friendId1 = f.getFriend1().getId();
                     Long friendId2 = f.getFriend2().getId();
-                    try{
-                        userRepo.findElement(friendId1);
-                        userRepo.findElement(friendId2);
+                    if(userRepo.findElement(friendId1).isPresent() && userRepo.findElement(friendId2).isPresent()){
                         return Optional.<Pair<Long>>empty();
                     }
-                    catch (RepositoryException e) {
+                    else{
                         return Optional.of(f.getId());
                     }
                 })
@@ -109,18 +108,15 @@ public class FriendshipHelper {
                 .map(Optional::get)
                 .forEach(friendshipRepo::deleteElement);
         //deleteList.stream().forEach(friendshipRepo::deleteElement);
-        friendshipRepo.findAll(DefaultFilters::filterTrue).stream().forEach((f) -> {
+        friendshipRepo.findAll(DefaultFilters::filterTrue).forEach((f) -> {
             Long friendId1 = f.getFriend1().getId();
             Long friendId2 = f.getFriend2().getId();
-            try{
-                User newFriend1 = userRepo.findElement(friendId1);
-                User newFriend2 = userRepo.findElement(friendId2);
+            if(userRepo.findElement(friendId1).isPresent() && userRepo.findElement(friendId2).isPresent()){
+                User newFriend1 = userRepo.findElement(friendId1).get();
+                User newFriend2 = userRepo.findElement(friendId2).get();
                 if(!f.getFriend1().equalsEveryField(newFriend1) || !f.getFriend2().equalsEveryField(newFriend2)){
                     friendshipRepo.modifyElement(new Friendship(newFriend1,newFriend2,f.getDate()));
                 }
-            }
-            catch (RepositoryException e) {
-
             }
         });
 

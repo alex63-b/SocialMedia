@@ -21,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -68,11 +69,16 @@ public class BasicFriendshipServiceTest {
         service.addFriendship(1L,2L);
 
         assertEquals(3,friendship_repo.size());
-        assertEquals(1L,friendship_repo.findElement(new Pair<>(1L,2L)).getFriend1().getId());
-        assertEquals(2L,friendship_repo.findElement(new Pair<>(1L,2L)).getFriend2().getId());
-        LocalDateTime date = LocalDateTime.now().minusMinutes(1);
-        assertTrue(date.isBefore(friendship_repo.findElement(new Pair<>(1L,2L)).getDate()));
-        assertTrue(LocalDateTime.now().isAfter(friendship_repo.findElement(new Pair<>(1L,2L)).getDate()));
+        if(friendship_repo.findElement(new Pair<>(1L,2L)).isPresent()) {
+            assertEquals(1L, friendship_repo.findElement(new Pair<>(1L, 2L)).get().getFriend1().getId());
+            assertEquals(2L, friendship_repo.findElement(new Pair<>(1L, 2L)).get().getFriend2().getId());
+            LocalDateTime date = LocalDateTime.now().minusMinutes(1);
+            assertTrue(date.isBefore(friendship_repo.findElement(new Pair<>(1L, 2L)).get().getDate()));
+            assertTrue(LocalDateTime.now().isAfter(friendship_repo.findElement(new Pair<>(1L, 2L)).get().getDate()));
+        }
+        else{
+            fail();
+        }
     }
 
     @Test
@@ -83,12 +89,12 @@ public class BasicFriendshipServiceTest {
         Repository<Pair<Long>,Friendship> friendship_repo = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
         BasicFriendshipService service = new BasicFriendshipService(friendship_repo,user_repo);
 
-        assertThrows(RepositoryException.class,() -> service.deleteFriendship(9L,7L));
+        assertThrows(ValidationException.class,() -> service.deleteFriendship(9L,7L));
 
         service.deleteFriendship(1L,3L);
 
         assertEquals(1,friendship_repo.size());
-        assertThrows(RepositoryException.class,() -> friendship_repo.findElement(new Pair<>(1L,3L)));
+        assertEquals(Optional.empty(),friendship_repo.findElement(new Pair<>(1L,3L)));
     }
 
     @Test

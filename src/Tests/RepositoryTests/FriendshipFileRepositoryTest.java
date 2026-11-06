@@ -20,6 +20,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -72,10 +73,20 @@ public class FriendshipFileRepositoryTest {
         Repository<Pair<Long>, Friendship> empty_repo = new FriendshipFileRepository(user_repo,friendshipValidator,"a");
         assertEquals(0,empty_repo.size());
 
-        assertEquals("John Doe",friendship_repo.findElement(new Pair<>(1L,3L)).getFriend1().getName());
-        assertEquals("Luke Scott",friendship_repo.findElement(new Pair<>(1L,3L)).getFriend2().getName());
-        assertEquals("Luke Scott",friendship_repo.findElement(new Pair<>(3L,2L)).getFriend1().getName());
-        assertEquals("Phil Smith",friendship_repo.findElement(new Pair<>(3L,2L)).getFriend2().getName());
+        if(friendship_repo.findElement(new Pair<>(1L,3L)).isPresent()) {
+            assertEquals("John Doe", friendship_repo.findElement(new Pair<>(1L, 3L)).get().getFriend1().getName());
+            assertEquals("Luke Scott", friendship_repo.findElement(new Pair<>(1L, 3L)).get().getFriend2().getName());
+        }
+        else{
+            fail();
+        }
+        if(friendship_repo.findElement(new Pair<>(3L,2L)).isPresent()) {
+            assertEquals("Luke Scott", friendship_repo.findElement(new Pair<>(3L, 2L)).get().getFriend1().getName());
+            assertEquals("Phil Smith", friendship_repo.findElement(new Pair<>(3L, 2L)).get().getFriend2().getName());
+        }
+        else{
+            fail();
+        }
     }
     @Test
     public void testStoreIntoFile(){
@@ -84,14 +95,19 @@ public class FriendshipFileRepositoryTest {
         UserFileRepository user_repo = new UserFileRepository(userValidator,user_path);
         FriendshipFileRepository friendship_repo = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
 
-        friendship_repo.addElement(new Friendship(user_repo.findElement(1L),user_repo.findElement(2L), LocalDateTime.now()));
+        if(user_repo.findElement(1L).isPresent() && user_repo.findElement(2L).isPresent()) {
+            friendship_repo.addElement(new Friendship(user_repo.findElement(1L).get(), user_repo.findElement(2L).get(), LocalDateTime.now()));
+        }
+        else{
+            fail();
+        }
 
         FriendshipFileRepository friendship_repo_2 = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
 
         int length = 0;
         for(Friendship f : friendship_repo_2.findAll(DefaultFilters::filterTrue)){
             length += 1;
-            assertEquals(f,friendship_repo.findElement(f.getId()));
+            assertEquals(Optional.of(f),friendship_repo.findElement(f.getId()));
         }
         assertEquals(3,length);
     }
@@ -118,14 +134,26 @@ public class FriendshipFileRepositoryTest {
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
         UserFileRepository user_repo = new UserFileRepository(userValidator,user_path);
         FriendshipFileRepository friendship_repo = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
-
-        friendship_repo.modifyElement(new Friendship(user_repo.findElement(1L),user_repo.findElement(3L),LocalDateTime.parse("2024-02-23T10:11:12")));
-
-        assertEquals(LocalDateTime.parse("2024-02-23T10:11:12"),friendship_repo.findElement(new Pair<>(1L,3L)).getDate());
+        if(user_repo.findElement(1L).isPresent() && user_repo.findElement(3L).isPresent()) {
+            friendship_repo.modifyElement(new Friendship(user_repo.findElement(1L).get(), user_repo.findElement(3L).get(), LocalDateTime.parse("2024-02-23T10:11:12")));
+        }
+        else{
+            fail();
+        }
+        if(friendship_repo.findElement(new Pair<>(1L,3L)).isPresent()) {
+            assertEquals(LocalDateTime.parse("2024-02-23T10:11:12"), friendship_repo.findElement(new Pair<>(1L, 3L)).get().getDate());
+        }
+        else{
+            fail();
+        }
 
         user_repo.modifyElement(new User(2L,"Thor Odinson","thor@odinson.com"));
-
-        assertEquals("Thor Odinson",friendship_repo.findElement(new Pair<>(3L,2L)).getFriend2().getName());
+        if(friendship_repo.findElement(new Pair<>(3L,2L)).isPresent()) {
+            assertEquals("Thor Odinson", friendship_repo.findElement(new Pair<>(3L, 2L)).get().getFriend2().getName());
+        }
+        else{
+            fail();
+        }
     }
 
     @Test
@@ -134,12 +162,18 @@ public class FriendshipFileRepositoryTest {
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
         UserFileRepository user_repo = new UserFileRepository(userValidator,user_path);
         FriendshipFileRepository friendship_repo = new FriendshipFileRepository(user_repo,friendshipValidator,friendship_path);
+        if(user_repo.findElement(1L).isPresent() && user_repo.findElement(3L).isPresent()) {
+            User user1 = user_repo.findElement(1L).get();
+            User user3 = user_repo.findElement(3L).get();
+            assertThrows(RepositoryException.class, () -> friendship_repo.addElement(new Friendship(user1, user3, LocalDateTime.parse("2024-02-23T10:11:12"))));
+            assertThrows(RepositoryException.class, () -> friendship_repo.addElement(new Friendship(user3, user1, LocalDateTime.parse("2024-02-23T10:11:12"))));
+            assertThrows(ValidationException.class, () -> friendship_repo.addElement(new Friendship(user1, user1, LocalDateTime.parse("2024-02-23T10:11:12"))));
 
-        assertThrows(RepositoryException.class,() -> friendship_repo.addElement(new Friendship(user_repo.findElement(1L),user_repo.findElement(3L),LocalDateTime.parse("2024-02-23T10:11:12"))));
-        assertThrows(RepositoryException.class,() -> friendship_repo.addElement(new Friendship(user_repo.findElement(3L),user_repo.findElement(1L),LocalDateTime.parse("2024-02-23T10:11:12"))));
-        assertThrows(ValidationException.class,() -> friendship_repo.addElement(new Friendship(user_repo.findElement(1L),user_repo.findElement(1L),LocalDateTime.parse("2024-02-23T10:11:12"))));
-
-        assertThrows(RepositoryException.class,() -> friendship_repo.addElement(new Friendship(user_repo.findElement(3L),new User(9L,"a","b"),LocalDateTime.parse("2024-02-23T10:11:12"))));
+            assertThrows(RepositoryException.class, () -> friendship_repo.addElement(new Friendship(user3, new User(9L, "a", "b"), LocalDateTime.parse("2024-02-23T10:11:12"))));
+        }
+        else{
+            fail();
+        }
     }
     @Test
     public void testDoubleFriendAdd(){
@@ -147,13 +181,17 @@ public class FriendshipFileRepositoryTest {
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
         UserFileRepository userRepo = new UserFileRepository(userValidator,user_path);
         FriendshipFileRepository friendshipRepo = new FriendshipFileRepository(userRepo,friendshipValidator,friendship_path);
+        if(userRepo.findElement(1L).isPresent() && userRepo.findElement(2L).isPresent() && userRepo.findElement(3L).isPresent()) {
+            assertEquals(1, userRepo.findElement(1L).get().getFriends().size());
+            assertTrue(userRepo.findElement(1L).get().getFriends().contains(userRepo.findElement(3L).get()));
 
-        assertEquals(1,userRepo.findElement(1L).getFriends().size());
-        assertTrue(userRepo.findElement(1L).getFriends().contains(userRepo.findElement(3L)));
-
-        assertEquals(2,userRepo.findElement(3L).getFriends().size());
-        assertTrue(userRepo.findElement(3L).getFriends().contains(userRepo.findElement(1L)));
-        assertTrue(userRepo.findElement(3L).getFriends().contains(userRepo.findElement(2L)));
+            assertEquals(2, userRepo.findElement(3L).get().getFriends().size());
+            assertTrue(userRepo.findElement(3L).get().getFriends().contains(userRepo.findElement(1L).get()));
+            assertTrue(userRepo.findElement(3L).get().getFriends().contains(userRepo.findElement(2L).get()));
+        }
+        else{
+            fail();
+        }
     }
     @Test
     public void testFriendshipDelete(){
@@ -163,9 +201,13 @@ public class FriendshipFileRepositoryTest {
         FriendshipFileRepository friendshipRepo = new FriendshipFileRepository(userRepo,friendshipValidator,friendship_path);
 
         friendshipRepo.deleteElement(new Pair<>(1L,3L));
-
-        assertEquals(0,userRepo.findElement(1L).getFriends().size());
-        assertEquals(1,userRepo.findElement(3L).getFriends().size());
-        assertFalse(userRepo.findElement(1L).getFriends().contains(new User(3L,"Phil Smith","philsmith@gmail.com")));
+        if(userRepo.findElement(1L).isPresent() && userRepo.findElement(3L).isPresent()) {
+            assertEquals(0, userRepo.findElement(1L).get().getFriends().size());
+            assertEquals(1, userRepo.findElement(3L).get().getFriends().size());
+            assertFalse(userRepo.findElement(1L).get().getFriends().contains(new User(3L, "Phil Smith", "philsmith@gmail.com")));
+        }
+        else{
+            fail();
+        }
     }
 }

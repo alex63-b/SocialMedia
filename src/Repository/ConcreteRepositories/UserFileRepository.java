@@ -8,8 +8,10 @@ import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.Exceptions.RepositoryException;
 import Repository.Observer.FriendshipObserver;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class stores users in a file and notifies observers when users change.
@@ -81,7 +83,7 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
      */
     @Override
     public void notifyObservers() {
-        observers.stream().forEach(FriendshipObserver::update);
+        observers.forEach(FriendshipObserver::update);
     }
 
     /**
@@ -91,9 +93,12 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
      * @throws ValidationException if the user does not satisfy its validation rules;
      */
     @Override
-    public void addElement(User element) throws RepositoryException {
-        super.addElement(element);
-        notifyObservers();
+    public Optional<User> addElement(User element) throws RepositoryException {
+        Optional<User> result = super.addElement(element);
+        if(result.isPresent()) {
+            notifyObservers();
+        }
+        return result;
     }
 
     /**
@@ -102,9 +107,12 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
      * @throws RepositoryException if the user does not exist or the file cannot be written;
      */
     @Override
-    public void deleteElement(Long id) throws RepositoryException {
-        super.deleteElement(id);
-        notifyObservers();
+    public Optional<User> deleteElement(Long id) throws RepositoryException {
+        Optional<User> result = super.deleteElement(id);
+        if(result.isPresent()) {
+            notifyObservers();
+        }
+        return result;
     }
 
     /**
@@ -114,8 +122,11 @@ public class UserFileRepository extends FileRepository<Long, User> implements Ob
      * @throws ValidationException if the user does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(User element) throws RepositoryException {
-        super.modifyElement(element);
-        notifyObservers();
+    public Optional<User> modifyElement(User element) throws RepositoryException {
+        Optional<User> result = super.modifyElement(element);
+        if(result.isEmpty()) {
+            notifyObservers();
+        }
+        return result;
     }
 }

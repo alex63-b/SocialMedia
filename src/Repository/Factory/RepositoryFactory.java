@@ -28,7 +28,7 @@ public class RepositoryFactory {
     public RepositoryFactory(Properties properties){
         this.properties = properties;
         this.userFactory = Map.of(
-                RepositoryType.MEMORY,ObservableMemoryUserRepository::new,
+                RepositoryType.MEMORY, MemoryUserRepository::new,
                 RepositoryType.FILE, (validator) -> {
                     if(properties.getProperty("file.users") == null){
                         throw new ConfigException("The configuration file doesn't have the user file path!");
@@ -42,8 +42,8 @@ public class RepositoryFactory {
                 });
         this.friendshipFactory = Map.of(
                 RepositoryType.MEMORY,(validator) -> {
-                    if(userRepository instanceof ObservableMemoryUserRepository userRepo) {
-                        return new ObserverMemoryFriendshipRepository(userRepo, validator);
+                    if(userRepository instanceof MemoryUserRepository userRepo) {
+                        return new MemoryFriendshipRepository(userRepo, validator);
                     }
                     else{
                         throw new ConfigException("The repository types are different!");

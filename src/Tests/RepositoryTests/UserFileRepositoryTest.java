@@ -13,9 +13,9 @@ import org.junit.jupiter.api.Test;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class UserFileRepositoryTest {
     @BeforeEach
@@ -51,9 +51,14 @@ class UserFileRepositoryTest {
         assertEquals(0,empty_repo.size());
 
         assertEquals(3,new_repo.size());
-        assertEquals("John Doe",new_repo.findElement(1L).getName());
-        assertEquals("philsmith@gmail.com",new_repo.findElement(2L).getFirstName());
-        assertEquals("Luke Scott",new_repo.findElement(3L).getName());
+        if(new_repo.findElement(1L).isPresent() && new_repo.findElement(2L).isPresent() && new_repo.findElement(3L).isPresent()) {
+            assertEquals("John Doe", new_repo.findElement(1L).get().getName());
+            assertEquals("philsmith@gmail.com", new_repo.findElement(2L).get().getFirstName());
+            assertEquals("Luke Scott", new_repo.findElement(3L).get().getName());
+        }
+        else{
+            fail();
+        }
     }
 
     @Test
@@ -66,7 +71,7 @@ class UserFileRepositoryTest {
         Repository<Long,User> test_repo = new UserFileRepository(validator,"test_data/Users/user_data.csv");
         assertEquals(4,test_repo.size());
         for(User u : test_repo.findAll(DefaultFilters::filterTrue)){
-            assertEquals(u,new_repo.findElement(u.getId()));
+            assertEquals(Optional.of(u),new_repo.findElement(u.getId()));
         }
     }
 }

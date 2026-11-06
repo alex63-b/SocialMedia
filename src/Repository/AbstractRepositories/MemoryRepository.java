@@ -5,10 +5,12 @@ import Domain.Validation.ValidationException;
 import Domain.Validation.Validator;
 import Repository.Exceptions.RepositoryException;
 
+import java.io.InvalidObjectException;
 import java.security.KeyException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -51,54 +53,71 @@ public class MemoryRepository<ID,E extends Entity<ID>> implements Repository<ID,
     /**
      * This function finds an entity by its identifier.
      * @param id the identifier of the entity to find;
-     * @return the entity with the specified identifier;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return the entity with the specified identifier, or Optional.empty() if it doesn't exist in the repository;
+     * @throws RepositoryException if the ID is null;
      */
     @Override
-    public E findElement(ID id) throws RepositoryException {
-        if(repoMap.containsKey(id)){
-            return this.repoMap.get(id);
+    public Optional<E> findElement(ID id) throws RepositoryException {
+        if(id == null){
+            throw new RepositoryException("The ID can't be null!",new InvalidObjectException(""));
         }
-        throw new RepositoryException("The entity with this ID couldn't be found!", new KeyException());
+        if(repoMap.containsKey(id)){
+            return Optional.of(this.repoMap.get(id));
+        }
+        return Optional.empty();
     }
     /**
      * This function validates and adds an entity to the repository.
      * @param new_element the entity to add;
-     * @throws RepositoryException if an entity with the same identifier already exists;
+     * @return Optional.empty() if an entity with the same identifier already exists, and it returns the entity if the add operation is successful;
      * @throws ValidationException if the entity does not satisfy its validation rules;
+     * @throws RepositoryException if the entity is null, or its ID is null;
      */
     @Override
-    public void addElement(E new_element) throws RepositoryException, ValidationException {
+    public Optional<E> addElement(E new_element) throws RepositoryException, ValidationException {
+        if(new_element == null){
+            throw new RepositoryException("The new element can't be null!",new InvalidObjectException(""));
+        }
+        if(new_element.getId() == null){
+            throw new RepositoryException("The new element's ID can't be null!",new InvalidObjectException(""));
+        }
         validator.validate(new_element);
         if(repoMap.containsKey(new_element.getId())){
-            throw new RepositoryException("The entity with this ID already exists in the list!", new KeyException());
+            return Optional.empty();
         }
         repoMap.put(new_element.getId(),new_element);
+        return Optional.of(new_element);
     }
     /**
      * This function removes an entity from the repository by its identifier.
      * @param id the identifier of the entity to remove;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return Optional.empty() if no entity with the specified identifier exists, or the deleted element if the identifier exists;
      */
     @Override
-    public void deleteElement(ID id) throws RepositoryException {
-        if(!repoMap.containsKey(id)){
-            throw new RepositoryException("The entity with this ID couldn't be found!", new KeyException());
-        }
-        repoMap.remove(id);
+    public Optional<E> deleteElement(ID id) throws RepositoryException {
+        return Optional.ofNullable(repoMap.remove(id));
     }
+
     /**
      * This function validates and replaces an existing entity.
      * @param new_element the entity containing the replacement data;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return the given element if the element's id doesn't exist in the repository, and it returns Optional.empty() on success;
+     * @throws RepositoryException if the entity is null;
      * @throws ValidationException if the entity does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(E new_element) throws RepositoryException {
+    public Optional<E> modifyElement(E new_element) throws RepositoryException {
+        if(new_element == null){
+            throw new RepositoryException("The entity can't be null!", new InvalidObjectException(""));
+        }
+        if(new_element.getId() == null){
+            throw new RepositoryException("The entity's ID can't be null!", new InvalidObjectException(""));
+        }
         validator.validate(new_element);
         if(!repoMap.containsKey(new_element.getId())){
-            throw new RepositoryException("The entity with this ID couldn't be found!", new KeyException());
+            return Optional.of(new_element);
         }
         repoMap.replace(new_element.getId(),new_element);
+        return Optional.empty();
     }
 }

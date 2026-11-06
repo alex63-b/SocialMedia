@@ -17,9 +17,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BasicUserServiceTest {
     String test_path = "test_data/Users/user_data.csv";
@@ -53,7 +53,12 @@ public class BasicUserServiceTest {
 
         service.addUser("Killie Davis","killiedavis");
         assertEquals(4,repo.size());
-        assertEquals("Killie Davis",repo.findElement(4L).getName());
+        if(repo.findElement(4L).isPresent()) {
+            assertEquals("Killie Davis", repo.findElement(4L).get().getName());
+        }
+        else{
+            fail();
+        }
     }
 
     @Test
@@ -62,10 +67,10 @@ public class BasicUserServiceTest {
         Repository<Long, User> repo = new UserFileRepository(validator,test_path);
         ConsoleUserService service = new ConsoleUserService(repo);
 
-        assertThrows(RepositoryException.class,() -> service.deleteUser(9L));
+        assertThrows(ValidationException.class,() -> service.deleteUser(9L));
         service.deleteUser(2L);
         assertEquals(2,repo.size());
-        assertThrows(RepositoryException.class,()->repo.findElement(2L));
+        assertEquals(Optional.empty(),repo.findElement(2L));
     }
     @Test
     void searchByName(){

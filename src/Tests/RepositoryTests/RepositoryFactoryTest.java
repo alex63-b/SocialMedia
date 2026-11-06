@@ -62,10 +62,14 @@ class RepositoryFactoryTest {
         Repository<Long,User> fileRepo = factory.createUserRepository(userValidator);
 
         assertEquals(3,fileRepo.size());
-
-        assertEquals("John Doe",fileRepo.findElement(1L).getName());
-        assertEquals("Phil Smith",fileRepo.findElement(2L).getName());
-        assertEquals("Luke Scott",fileRepo.findElement(3L).getName());
+        if(fileRepo.findElement(1L).isPresent() && fileRepo.findElement(2L).isPresent() && fileRepo.findElement(3L).isPresent()) {
+            assertEquals("John Doe", fileRepo.findElement(1L).get().getName());
+            assertEquals("Phil Smith", fileRepo.findElement(2L).get().getName());
+            assertEquals("Luke Scott", fileRepo.findElement(3L).get().getName());
+        }
+        else{
+            fail();
+        }
     }
 
     @Test
@@ -83,8 +87,13 @@ class RepositoryFactoryTest {
 
         assertEquals(2,friendshipFileRepo.size());
 
-        assertEquals("John Doe",friendshipFileRepo.findElement(new Pair<>(1L,3L)).getFriend1().getName());
-        assertEquals("Luke Scott",friendshipFileRepo.findElement(new Pair<>(3L,2L)).getFriend1().getName());
+        if(friendshipFileRepo.findElement(new Pair<>(1L,3L)).isPresent() && friendshipFileRepo.findElement(new Pair<>(3L,2L)).isPresent()) {
+            assertEquals("John Doe", friendshipFileRepo.findElement(new Pair<>(1L, 3L)).get().getFriend1().getName());
+            assertEquals("Luke Scott", friendshipFileRepo.findElement(new Pair<>(3L, 2L)).get().getFriend1().getName());
+        }
+        else{
+            fail();
+        }
 
         userRepository.deleteElement(1L);
 

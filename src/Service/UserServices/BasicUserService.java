@@ -67,10 +67,12 @@ public class BasicUserService {
     /**
      * This function removes a user by ID.
      * @param id the ID of the user to remove;
-     * @throws RepositoryException if no user with the specified ID exists;
+     * @throws ValidationException if no user with the specified ID exists;
      */
     public void deleteUser(Long id) {
-        repository.deleteElement(id);
+        if(repository.deleteElement(id).isEmpty()){
+            throw new ValidationException("No user with this ID exists, so it can't be erased!");
+        }
     }
 
     /**

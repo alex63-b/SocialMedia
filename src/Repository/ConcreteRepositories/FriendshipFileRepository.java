@@ -12,8 +12,10 @@ import Repository.Helpers.FriendshipHelper;
 import Repository.Observer.FriendshipObserver;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Optional;
 
 /**
  * This class stores friendships in a file and observes changes to the user repository.
@@ -52,13 +54,13 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
             Long userId1 = Long.parseLong(splitLine[0]);
             Long userId2 = Long.parseLong(splitLine[1]);
             LocalDateTime date = LocalDateTime.parse(splitLine[2]);
-            return new Friendship(user_repo.findElement(userId1),user_repo.findElement(userId2),date);
+            if(user_repo.findElement(userId1).isEmpty() || user_repo.findElement(userId2).isEmpty()){
+                throw new RepositoryException("A user with the respective id couldn't be found!",new InvalidObjectException(""));
+            }
+            return new Friendship(user_repo.findElement(userId1).get(),user_repo.findElement(userId2).get(),date);
         }
         catch (NumberFormatException e){
             throw new RepositoryException("One of the numeric fields does not contain a valid number!",e.getCause());
-        }
-        catch (RepositoryException e){
-            throw new RepositoryException("A user with the respective id couldn't be found!",e.getCause());
         }
         catch (DateTimeParseException e){
             throw new RepositoryException("The date of the friendship isn't readable!",e.getCause());
@@ -86,13 +88,15 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      * @throws RepositoryException if the friendship does not exist or the file cannot be written;
      */
     @Override
-    public void deleteElement(Pair<Long> id) throws RepositoryException {
-        Friendship friendship = findElement(id);
+    public Optional<Friendship> deleteElement(Pair<Long> id) throws RepositoryException {
+        Optional<Friendship> optionalFriendship = findElement(id);
+        if(optionalFriendship.isPresent()) {
+            Friendship friendship = optionalFriendship.get();
 
-        friendship.getFriend1().removeFriend(friendship.getFriend2());
-        friendship.getFriend2().removeFriend(friendship.getFriend1());
-
-        super.deleteElement(id);
+            friendship.getFriend1().removeFriend(friendship.getFriend2());
+            friendship.getFriend2().removeFriend(friendship.getFriend1());
+        }
+        return super.deleteElement(id);
     }
 
     /**
@@ -103,10 +107,13 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      * @throws ValidationException if the friendship does not satisfy its validation rules;
      */
     @Override
-    public void addElement(Friendship new_element) throws RepositoryException, RepositoryException {
+    public Optional<Friendship> addElement(Friendship new_element) throws RepositoryException, RepositoryException {
         friendshipHelper.validateRelations(new_element,user_repo,this);
-        super.addElement(new_element);
-        addFriendsAfterAdd(new_element);
+        Optional<Friendship> result = super.addElement(new_element);
+        if(result.isPresent()) {
+            addFriendsAfterAdd(new_element);
+        }
+        return result;
     }
 
     /**
@@ -116,10 +123,13 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      * @throws ValidationException if the friendship does not satisfy its validation rules;
      */
     @Override
-    protected void noStoreAddElement(Friendship new_element) throws RepositoryException, RepositoryException {
+    protected Optional<Friendship> noStoreAddElement(Friendship new_element) throws RepositoryException, RepositoryException {
         friendshipHelper.validateRelations(new_element,user_repo,this);
-        super.noStoreAddElement(new_element);
-        addFriendsAfterAdd(new_element);
+        Optional<Friendship> result = super.noStoreAddElement(new_element);
+        if(result.isPresent()) {
+            addFriendsAfterAdd(new_element);
+        }
+        return result;
     }
 
     /**
@@ -129,11 +139,15 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      * @throws ValidationException if the friendship does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(Friendship new_element){
-        User oldFriend1 = findElement(new_element.getId()).getFriend1();
-        User oldFriend2 = findElement(new_element.getId()).getFriend2();
-        super.modifyElement(new_element);
-        friendshipHelper.updateFriends(new_element,oldFriend1,oldFriend2);
+    public Optional<Friendship> modifyElement(Friendship new_element){
+        if(findElement(new_element.getId()).isPresent()) {
+            User oldFriend1 = findElement(new_element.getId()).get().getFriend1();
+            User oldFriend2 = findElement(new_element.getId()).get().getFriend2();
+            Optional<Friendship> result = super.modifyElement(new_element);
+            friendshipHelper.updateFriends(new_element, oldFriend1, oldFriend2);
+            return result;
+        }
+        return Optional.of(new_element);
     }
 
     /**
@@ -143,6 +157,7 @@ public class FriendshipFileRepository extends FileRepository<Pair<Long>, Friends
      */
     @Override
     public void update() {
+
         friendshipHelper.updateHelper(user_repo,this);
     }
 }

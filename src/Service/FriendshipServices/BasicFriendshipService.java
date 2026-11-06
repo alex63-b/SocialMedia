@@ -39,15 +39,11 @@ public class BasicFriendshipService {
      * @throws RepositoryException if the friendship cannot be added to the repository;
      */
     public void addFriendship(Long userId1, Long userId2){
-        try{
-            userRepo.findElement(userId1);
-            userRepo.findElement(userId2);
-        }
-        catch (RepositoryException e){
+        if(userRepo.findElement(userId1).isEmpty() || userRepo.findElement(userId2).isEmpty()){
             throw new ValidationException("The users with these ID's don't exist in the list of users!");
         }
-        User friend1 = userRepo.findElement(userId1);
-        User friend2 = userRepo.findElement(userId2);
+        User friend1 = userRepo.findElement(userId1).get();
+        User friend2 = userRepo.findElement(userId2).get();
         Friendship new_friendship = new Friendship(friend1,friend2,LocalDateTime.now());
         friendshipRepo.addElement(new_friendship);
     }
@@ -56,18 +52,22 @@ public class BasicFriendshipService {
      * This function removes the friendship between two users.
      * @param friendId1 the ID of the first user;
      * @param friendId2 the ID of the second user;
-     * @throws RepositoryException if the friendship does not exist;
+     * @throws ValidationException if the friendship does not exist;
      */
     public void deleteFriendship(Long friendId1, Long friendId2){
-        friendshipRepo.deleteElement(new Pair<>(friendId1,friendId2));
+        if(friendshipRepo.deleteElement(new Pair<>(friendId1,friendId2)).isEmpty()){
+            throw new ValidationException("The ID's of the friends don't exist!");
+        }
     }
 
     private void DFS(Map<Long,Long> idTracker, Long startID, Long componentCount){
         idTracker.put(startID,componentCount);
-        User currentUser = userRepo.findElement(startID);
-        currentUser.getFriends().stream()
-                .filter((friend) -> idTracker.get(friend.getId()) == 0)
-                .forEach((friend) -> DFS(idTracker,friend.getId(),componentCount));
+        if(userRepo.findElement(startID).isPresent()) {
+            User currentUser = userRepo.findElement(startID).get();
+            currentUser.getFriends().stream()
+                    .filter((friend) -> idTracker.get(friend.getId()) == 0)
+                    .forEach((friend) -> DFS(idTracker, friend.getId(), componentCount));
+        }
     }
 
     /**
@@ -78,7 +78,7 @@ public class BasicFriendshipService {
     public int communityCount(){
         Map<Long,Long> idTracker = userRepo.findAll(DefaultFilters::filterTrue).stream()
                                               .collect(Collectors.toMap(User::getId, DefaultSuppliers::get0));
-        idTracker.keySet().stream()
+        idTracker.keySet()
                 .forEach((id) -> {
                     if(idTracker.get(id) == 0) {
                         DFS(idTracker, id, id);
@@ -151,6 +151,8 @@ public class BasicFriendshipService {
         return new ArrayList<>(idTracker.keySet().stream()
                 .filter((id) -> idTracker.get(id) != 0)
                 .map(userRepo::findElement)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList());
     }
 }

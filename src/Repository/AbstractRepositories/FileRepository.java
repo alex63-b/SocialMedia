@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 /**
@@ -70,7 +71,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
                             System.out.println("Line " + n + ": " + e.getMessage());
                         }
                     });
-            filteredLines.stream()
+            filteredLines
                     .forEach((line) -> {
                         try {
                             E new_entity = lineToEntity(line);
@@ -95,8 +96,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
         }
     }
     private void storeIntoFile() throws RepositoryException, ValidationException{
-        findAll(DefaultFilters::filterTrue).stream()
-                .forEach(validator::validate);
+        findAll(DefaultFilters::filterTrue).forEach(validator::validate);
         List<String> lines = findAll(DefaultFilters::filterTrue).stream()
                 .map(this::entityToLine)
                 .toList();
@@ -115,9 +115,10 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * @throws ValidationException if the entity does not satisfy its validation rules;
      */
     @Override
-    public void addElement(E new_element) throws RepositoryException, ValidationException {
-        super.addElement(new_element);
+    public Optional<E> addElement(E new_element) throws RepositoryException, ValidationException {
+        Optional<E> result = super.addElement(new_element);
         storeIntoFile();
+        return result;
     }
 
     /**
@@ -126,9 +127,10 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * @throws RepositoryException if the entity does not exist or the file cannot be written;
      */
     @Override
-    public void deleteElement(ID id) throws RepositoryException {
-        super.deleteElement(id);
+    public Optional<E> deleteElement(ID id) throws RepositoryException {
+        Optional<E> result = super.deleteElement(id);
         storeIntoFile();
+        return result;
     }
 
     /**
@@ -138,9 +140,10 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * @throws ValidationException if the entity does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(E new_element) throws RepositoryException {
-        super.modifyElement(new_element);
+    public Optional<E> modifyElement(E new_element) throws RepositoryException {
+        Optional<E> result = super.modifyElement(new_element);
         storeIntoFile();
+        return result;
     }
 
     /**
@@ -149,7 +152,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * @throws RepositoryException if an entity with the same identifier already exists;
      * @throws ValidationException if the entity does not satisfy its validation rules;
      */
-    protected void noStoreAddElement(E new_element) throws RepositoryException, ValidationException{
-        super.addElement(new_element);
+    protected Optional<E> noStoreAddElement(E new_element) throws RepositoryException, ValidationException{
+        return super.addElement(new_element);
     }
 }

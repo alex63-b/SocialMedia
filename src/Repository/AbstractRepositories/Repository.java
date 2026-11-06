@@ -5,6 +5,7 @@ import Domain.Validation.ValidationException;
 import Repository.Exceptions.RepositoryException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -29,31 +30,33 @@ public interface Repository<ID,E extends Entity<ID>>{
     /**
      * This function finds an entity by its identifier.
      * @param id the identifier of the entity to find;
-     * @return the entity with the specified identifier;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return the entity with the specified identifier, or Optional.empty() if it doesn't exist in the repository;
+     * @throws RepositoryException if the ID is null;
      */
-    E findElement(ID id);
+    Optional<E> findElement(ID id);
 
     /**
      * This function validates and adds an entity to the repository.
      * @param new_element the entity to add;
-     * @throws RepositoryException if an entity with the same identifier already exists;
+     * @return Optional.empty() if an entity with the same identifier already exists, and it returns the entity if the add operation is successful;
      * @throws ValidationException if the entity does not satisfy its validation rules;
+     * @throws RepositoryException if the entity is null, or its ID is null;
      */
-    void addElement(E new_element);
+    Optional<E> addElement(E new_element);
 
     /**
      * This function removes an entity from the repository by its identifier.
      * @param id the identifier of the entity to remove;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return Optional.empty() if no entity with the specified identifier exists, or the deleted element if the identifier exists;
      */
-    void deleteElement(ID id);
+    Optional<E> deleteElement(ID id);
 
     /**
      * This function validates and replaces an existing entity.
      * @param new_element the entity containing the replacement data;
-     * @throws RepositoryException if no entity with the specified identifier exists;
+     * @return the given element if the element's id doesn't exist in the repository, and it returns Optional.empty() on success;
+     * @throws RepositoryException if the entity is null;
      * @throws ValidationException if the entity does not satisfy its validation rules;
      */
-    void modifyElement(E new_element);
+    Optional<E> modifyElement(E new_element);
 }

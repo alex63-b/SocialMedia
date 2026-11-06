@@ -6,6 +6,7 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -56,7 +57,7 @@ public class UserDBRepository implements Repository<Long, User> {
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public User findElement(Long aLong) {
+    public Optional<User> findElement(Long aLong) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -66,7 +67,7 @@ public class UserDBRepository implements Repository<Long, User> {
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void addElement(User new_element) {
+    public Optional<User> addElement(User new_element) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -76,7 +77,7 @@ public class UserDBRepository implements Repository<Long, User> {
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void deleteElement(Long aLong) {
+    public Optional<User> deleteElement(Long aLong) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -86,7 +87,7 @@ public class UserDBRepository implements Repository<Long, User> {
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void modifyElement(User new_element) {
+    public Optional<User> modifyElement(User new_element) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 }

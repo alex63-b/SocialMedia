@@ -11,10 +11,12 @@ import Repository.Exceptions.RepositoryException;
 import Repository.Helpers.FriendshipHelper;
 import Repository.Observer.FriendshipObserver;
 
+import java.util.Optional;
+
 /**
  * This class stores friendships in memory and synchronizes them with user repository changes.
  */
-public class ObserverMemoryFriendshipRepository extends MemoryRepository<Pair<Long>, Friendship> implements FriendshipObserver {
+public class MemoryFriendshipRepository extends MemoryRepository<Pair<Long>, Friendship> implements FriendshipObserver {
     private final ObservableUserRepository user_repo;
     private final FriendshipHelper friendshipHelper;
     /**
@@ -22,7 +24,7 @@ public class ObserverMemoryFriendshipRepository extends MemoryRepository<Pair<Lo
      * @param user_repo the observable repository used to find and track users;
      * @param validator the validator used for friendships;
      */
-    public ObserverMemoryFriendshipRepository(ObservableUserRepository user_repo, Validator<Friendship> validator) {
+    public MemoryFriendshipRepository(ObservableUserRepository user_repo, Validator<Friendship> validator) {
         super(validator);
         this.user_repo = user_repo;
         this.friendshipHelper = FriendshipHelper.getFriendshipHelper();
@@ -39,13 +41,15 @@ public class ObserverMemoryFriendshipRepository extends MemoryRepository<Pair<Lo
      * @throws RepositoryException if the friendship does not exist;
      */
     @Override
-    public void deleteElement(Pair<Long> id) throws RepositoryException {
-        Friendship friendship = findElement(id);
+    public Optional<Friendship> deleteElement(Pair<Long> id) throws RepositoryException {
+        Optional<Friendship> optionalFriendship = findElement(id);
+        if(optionalFriendship.isPresent()) {
+            Friendship friendship = optionalFriendship.get();
 
-        friendship.getFriend1().removeFriend(friendship.getFriend2());
-        friendship.getFriend2().removeFriend(friendship.getFriend1());
-
-        super.deleteElement(id);
+            friendship.getFriend1().removeFriend(friendship.getFriend2());
+            friendship.getFriend2().removeFriend(friendship.getFriend1());
+        }
+        return super.deleteElement(id);
     }
 
     /**
@@ -55,10 +59,13 @@ public class ObserverMemoryFriendshipRepository extends MemoryRepository<Pair<Lo
      *                             or already have a friendship;
      */
     @Override
-    public void addElement(Friendship new_element) throws RepositoryException, RepositoryException {
+    public Optional<Friendship> addElement(Friendship new_element) throws RepositoryException, RepositoryException {
         friendshipHelper.validateRelations(new_element,user_repo,this);
-        super.addElement(new_element);
-        addFriendsAfterAdd(new_element);
+        Optional<Friendship> result = super.addElement(new_element);
+        if(result.isPresent()) {
+            addFriendsAfterAdd(new_element);
+        }
+        return result;
     }
 
     /**
@@ -68,11 +75,15 @@ public class ObserverMemoryFriendshipRepository extends MemoryRepository<Pair<Lo
      * @throws ValidationException if the friendship does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(Friendship new_element){
-        User oldFriend1 = findElement(new_element.getId()).getFriend1();
-        User oldFriend2 = findElement(new_element.getId()).getFriend2();
-        super.modifyElement(new_element);
-        friendshipHelper.updateFriends(new_element,oldFriend1,oldFriend2);
+    public Optional<Friendship> modifyElement(Friendship new_element){
+        if(findElement(new_element.getId()).isPresent()) {
+            User oldFriend1 = findElement(new_element.getId()).get().getFriend1();
+            User oldFriend2 = findElement(new_element.getId()).get().getFriend2();
+            Optional<Friendship> result = super.modifyElement(new_element);
+            friendshipHelper.updateFriends(new_element, oldFriend1, oldFriend2);
+            return result;
+        }
+        return Optional.of(new_element);
     }
 
     /**

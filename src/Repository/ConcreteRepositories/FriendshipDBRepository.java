@@ -6,6 +6,7 @@ import Domain.Validation.Validator;
 import Repository.AbstractRepositories.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -57,7 +58,7 @@ public class FriendshipDBRepository implements Repository<Pair<Long>, Friendship
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public Friendship findElement(Pair<Long> longPair) {
+    public Optional<Friendship> findElement(Pair<Long> longPair) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -67,7 +68,7 @@ public class FriendshipDBRepository implements Repository<Pair<Long>, Friendship
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void addElement(Friendship new_element) {
+    public Optional<Friendship> addElement(Friendship new_element) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -77,7 +78,7 @@ public class FriendshipDBRepository implements Repository<Pair<Long>, Friendship
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void deleteElement(Pair<Long> longPair) {
+    public Optional<Friendship> deleteElement(Pair<Long> longPair) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 
@@ -87,7 +88,7 @@ public class FriendshipDBRepository implements Repository<Pair<Long>, Friendship
      * @throws UnsupportedOperationException because this operation is not implemented;
      */
     @Override
-    public void modifyElement(Friendship new_element) {
+    public Optional<Friendship> modifyElement(Friendship new_element) {
         throw new UnsupportedOperationException("This operation is not implemented yet!");
     }
 }

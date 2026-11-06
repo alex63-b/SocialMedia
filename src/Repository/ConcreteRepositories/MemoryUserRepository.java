@@ -10,18 +10,19 @@ import Repository.Observer.FriendshipObserver;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class stores users in memory and notifies observers when users change.
  */
-public class ObservableMemoryUserRepository extends MemoryRepository<Long, User> implements ObservableUserRepository {
+public class MemoryUserRepository extends MemoryRepository<Long, User> implements ObservableUserRepository {
     private final List<FriendshipObserver> observers = new ArrayList<>();
 
     /**
      * This function creates an observable in-memory user repository.
      * @param validator the validator used for users;
      */
-    public ObservableMemoryUserRepository(Validator<User> validator) {
+    public MemoryUserRepository(Validator<User> validator) {
 
         super(validator);
     }
@@ -61,9 +62,12 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      * @throws ValidationException if the user does not satisfy its validation rules;
      */
     @Override
-    public void addElement(User new_element) throws RepositoryException {
-        super.addElement(new_element);
-        notifyObservers();
+    public Optional<User> addElement(User new_element) throws RepositoryException {
+        Optional<User> result = super.addElement(new_element);
+        if(result.isPresent()) {
+            notifyObservers();
+        }
+        return result;
     }
 
     /**
@@ -72,9 +76,12 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      * @throws RepositoryException if the user does not exist;
      */
     @Override
-    public void deleteElement(Long id) throws RepositoryException {
-        super.deleteElement(id);
-        notifyObservers();
+    public Optional<User> deleteElement(Long id) throws RepositoryException {
+        Optional<User> result = super.deleteElement(id);
+        if(result.isPresent()) {
+            notifyObservers();
+        }
+        return result;
     }
 
     /**
@@ -84,8 +91,11 @@ public class ObservableMemoryUserRepository extends MemoryRepository<Long, User>
      * @throws ValidationException if the user does not satisfy its validation rules;
      */
     @Override
-    public void modifyElement(User new_element) throws RepositoryException {
-        super.modifyElement(new_element);
-        notifyObservers();
+    public Optional<User> modifyElement(User new_element) throws RepositoryException {
+        Optional<User> result = super.modifyElement(new_element);
+        if(result.isEmpty()) {
+            notifyObservers();
+        }
+        return result;
     }
 }
