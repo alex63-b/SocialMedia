@@ -1,4 +1,4 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.ConcreteTests.File;
 
 import Domain.Objects.User;
 import Domain.Validation.UserValidator;
@@ -39,7 +39,7 @@ class UserFileRepositoryTest {
         }
     }
     @Test
-    void testLoadFromFile() {
+    void testLoad() {
         Validator<User> validator = new UserValidator();
         Repository<Long, User> new_repo = new UserFileRepository(validator,"test_data/Users/user_data.csv");
 
@@ -62,7 +62,7 @@ class UserFileRepositoryTest {
     }
 
     @Test
-    void testStoreIntoFile() {
+    void testStore() {
         Validator<User> validator = new UserValidator();
         Repository<Long, User> new_repo = new UserFileRepository(validator,"test_data/Users/user_data.csv");
 

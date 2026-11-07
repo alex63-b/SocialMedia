@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/DBScripts/SMCreation.sql" value="0b49a8f0-dbe6-41dc-9f5d-ac8ee827b77b" />
+    <file url="file://$PROJECT_DIR$/DBScripts/testCreation.sql" value="5ee50c0e-6e13-44d8-b4aa-f992bd8f394d" />
+  </component>
+</project>

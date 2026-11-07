@@ -80,7 +80,9 @@ public class MemoryFriendshipRepository extends MemoryRepository<Pair<Long>, Fri
             User oldFriend1 = findElement(new_element.getId()).get().getFriend1();
             User oldFriend2 = findElement(new_element.getId()).get().getFriend2();
             Optional<Friendship> result = super.modifyElement(new_element);
+
             friendshipHelper.updateFriends(new_element, oldFriend1, oldFriend2);
+
             return result;
         }
         return Optional.of(new_element);

@@ -1,8 +1,7 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.Helpers;
 
 import Domain.Objects.Friendship;
 import Domain.Objects.User;
-import Repository.Helpers.DefaultFilters;
 import Repository.Helpers.DefaultSuppliers;
 import org.junit.jupiter.api.Test;
 

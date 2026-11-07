@@ -1,4 +1,4 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.Helpers;
 
 import Domain.Objects.Friendship;
 import Domain.Objects.User;

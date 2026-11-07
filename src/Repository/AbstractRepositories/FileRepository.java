@@ -31,7 +31,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
     public FileRepository(Validator<E> validator, String fileName){
         super(validator);
         this.fileName = fileName;
-        loadFromFile();
+        load();
     }
 
     /**
@@ -55,7 +55,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
      * Invalid or duplicate entries are reported and skipped.
      * @throws RepositoryException if the file cannot be created or opened;
      */
-    protected void loadFromFile() throws RepositoryException, ValidationException {
+    protected void load() throws RepositoryException, ValidationException {
         try(var lines = Files.lines(Path.of(fileName))){
             List<String> filteredLines = lines
                     .filter(DefaultFilters::filterNotEmptyLines)
@@ -95,7 +95,8 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
             }
         }
     }
-    private void storeIntoFile() throws RepositoryException, ValidationException{
+
+    private void store() throws RepositoryException, ValidationException{
         findAll(DefaultFilters::filterTrue).forEach(validator::validate);
         List<String> lines = findAll(DefaultFilters::filterTrue).stream()
                 .map(this::entityToLine)
@@ -117,7 +118,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
     @Override
     public Optional<E> addElement(E new_element) throws RepositoryException, ValidationException {
         Optional<E> result = super.addElement(new_element);
-        storeIntoFile();
+        store();
         return result;
     }
 
@@ -129,7 +130,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
     @Override
     public Optional<E> deleteElement(ID id) throws RepositoryException {
         Optional<E> result = super.deleteElement(id);
-        storeIntoFile();
+        store();
         return result;
     }
 
@@ -142,7 +143,7 @@ public abstract class FileRepository<ID, E extends Entity<ID>> extends MemoryRep
     @Override
     public Optional<E> modifyElement(E new_element) throws RepositoryException {
         Optional<E> result = super.modifyElement(new_element);
-        storeIntoFile();
+        store();
         return result;
     }
 

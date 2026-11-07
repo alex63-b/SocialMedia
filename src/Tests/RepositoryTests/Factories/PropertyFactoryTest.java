@@ -1,4 +1,4 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.Factories;
 
 import Repository.Exceptions.ConfigException;
 import Repository.Factory.PropertyFactory;

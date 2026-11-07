@@ -52,7 +52,7 @@ public class MemoryUserRepository extends MemoryRepository<Long, User> implement
      */
     @Override
     public void notifyObservers() {
-        observers.stream().forEach(FriendshipObserver::update);
+        observers.forEach(FriendshipObserver::update);
     }
 
     /**

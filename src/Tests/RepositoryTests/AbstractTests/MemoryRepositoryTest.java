@@ -1,4 +1,4 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.AbstractTests;
 
 import Domain.Objects.User;
 import Domain.Validation.UserValidator;
@@ -14,6 +14,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MemoryRepositoryTest {
+
     @Test
     void testFindAll(){
         Repository<Long, User> new_repo = new MemoryRepository<Long, User>(new UserValidator());
@@ -74,6 +75,7 @@ class MemoryRepositoryTest {
     @Test
     void testDeleteElement() {
         Repository<Long, User> new_repo = new MemoryRepository<Long, User>(new UserValidator());
+
         User[] new_users = {new User(2L,"John Doe","johndoe@gmail.com"),
                 new User(3L,"Luke Doe","lukedoe@gmail.com")};
         for(User u : new_users){

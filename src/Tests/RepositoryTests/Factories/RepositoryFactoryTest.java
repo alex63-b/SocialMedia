@@ -1,4 +1,4 @@
-package Tests.RepositoryTests;
+package Tests.RepositoryTests.Factories;
 
 import Domain.Objects.Friendship;
 import Domain.Objects.Pair;
@@ -6,7 +6,6 @@ import Domain.Objects.User;
 import Domain.Validation.FriendshipValidator;
 import Domain.Validation.UserValidator;
 import Domain.Validation.Validator;
-import Repository.AbstractRepositories.ObservableUserRepository;
 import Repository.AbstractRepositories.Repository;
 import Repository.Exceptions.ConfigException;
 import Repository.Factory.PropertyFactory;
